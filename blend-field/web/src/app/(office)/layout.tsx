@@ -15,13 +15,13 @@ export default async function OfficeLayout({ children }: { children: React.React
       <nav aria-label="Main" className="hidden flex-col gap-0.5 bg-nav-bg px-3 py-4 md:sticky md:top-0 md:flex md:h-dvh">
         <div className="mb-5 flex items-center px-2.5 pt-1 text-base font-bold text-on-nav">
           <span aria-hidden className="mr-2 size-2.5 rounded-[3px] bg-accent" />
-          Blend Field
+          PM / FM workspace
         </div>
         <NavLinks />
       </nav>
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-10 flex h-header items-center gap-3 border-b border-border bg-bg px-4">
-          <span className="font-bold md:hidden">Blend Field</span>
+          <span className="font-bold md:hidden">PM / FM</span>
           <form action="/jobs" role="search" className="relative max-w-[420px] flex-1">
             <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-subtle" />
             <label htmlFor="q" className="sr-only">Search jobs</label>

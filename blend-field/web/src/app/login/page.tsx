@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { supabaseServer } from "@/server/supabase";
 import { currentActor } from "@/server/auth";
 import { SignInForm } from "./sign-in-form";
 
@@ -12,6 +14,14 @@ const REASON: Record<string, string> = {
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
   const me = await currentActor();
   if (me && (me.role === "office" || me.role === "admin" || me.role === "facility_manager")) redirect("/jobs");
+  if (!me) {
+    const db = await supabaseServer();
+    const { data: { user } } = await db.auth.getUser();
+    if (user) {
+      const { data: sites } = await db.rpc("tenant_sites");
+      if (sites?.length) redirect("/requests");
+    }
+  }
   const { reason } = await searchParams;
   return (
     <main className="grid min-h-dvh place-items-center bg-nav-bg px-4">
@@ -21,7 +31,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </p>
         <h1 className="mt-4 text-xl font-bold">Sign in</h1>
         {reason && REASON[reason] && <p role="alert" className="mt-3 rounded-sm bg-warning-soft p-3 text-warning">{REASON[reason]}</p>}
+        {reason === "field" && <a href="https://jobcards-field.srv938083.hstgr.cloud/" className="mt-3 block font-semibold text-accent-text underline">Open the trade workspace</a>}
         <SignInForm />
+        <Link href="/role-views" className="mt-4 block text-sm text-accent-text underline">Preview the three role views</Link>
       </div>
     </main>
   );

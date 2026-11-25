@@ -1,5 +1,5 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Button, ButtonLink, Card, Field, Input, Select, Textarea } from "@/components/ui";
 import { createJobAction, type FormState } from "../../../actions";
@@ -7,12 +7,15 @@ import { createJobAction, type FormState } from "../../../actions";
 type Props = {
   sites: { id: string; label: string; client: string }[];
   people: { id: string; name: string; skills: string[] }[];
+  tenants: { user_id: string; site_id: string; first_name: string; surname: string; company: string }[];
   defaultSite?: string;
 };
 
-export function NewJobForm({ sites, people, defaultSite }: Props) {
+export function NewJobForm({ sites, people, tenants, defaultSite }: Props) {
   const [state, action, pending] = useActionState<FormState, FormData>(createJobAction, undefined);
   const f = state?.fields ?? {};
+  const [site, setSite] = useState(defaultSite ?? "");
+  const siteTenants = tenants.filter((tenant) => tenant.site_id === site);
 
   return (
     <form action={action} className="flex flex-col gap-4" noValidate>
@@ -27,9 +30,17 @@ export function NewJobForm({ sites, people, defaultSite }: Props) {
           <Input id="title" name="title" required maxLength={120} defaultValue={f.title} placeholder="e.g. Geyser not heating" aria-describedby="title-help" />
         </Field>
         <Field label="Site" htmlFor="site_id" required>
-          <Select id="site_id" name="site_id" required defaultValue={f.site_id ?? defaultSite ?? ""}>
+          <Select id="site_id" name="site_id" required value={site} onChange={(event) => setSite(event.target.value)}>
             <option value="" disabled>Choose a property or unit</option>
             {sites.map((s) => <option key={s.id} value={s.id}>{s.label} · {s.client}</option>)}
+          </Select>
+        </Field>
+        <Field label="Tenant contact" htmlFor="requester_user_id" help="Choose the tenant whose request you are logging.">
+          <Select key={site} id="requester_user_id" name="requester_user_id" defaultValue={f.requester_user_id ?? ""}>
+            <option value="">Internal job · no tenant selected</option>
+            {siteTenants.map((tenant) => <option key={tenant.user_id} value={tenant.user_id}>
+              {tenant.first_name} {tenant.surname} · {tenant.company}
+            </option>)}
           </Select>
         </Field>
         <Field label="Trade" htmlFor="trade" required>

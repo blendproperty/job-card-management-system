@@ -51,6 +51,7 @@ export type FormState = { error?: string; fields?: Record<string, string> } | un
 const createSchema = z.object({
   title: z.string({ error: "Give the job a short title." }).trim()
     .min(3, "Give the job a short title (3+ characters).").max(120, "Keep the title under 120 characters."),
+  requester_user_id: z.uuid().optional(),
   trade: z.enum(["general maintenance", "plumbing", "electrical", "other"]),
   site_id: z.string({ error: "Pick a site." }).uuid("Pick a site."),
   description: z.string().trim().max(2000).optional(),
@@ -79,6 +80,7 @@ export async function createJobAction(_prev: FormState, form: FormData): Promise
       estimate_min: d.estimate_min ?? null,
       assignee_id: d.assignee_id ?? null,
       trade: d.trade,
+      requester_user_id: d.requester_user_id,
     });
     id = job.id;
   } catch (e) {
@@ -128,7 +130,30 @@ export async function submitTenantRequest(form: FormData) {
     p_title: String(form.get("title") ?? ""),
     p_description: String(form.get("description") ?? ""),
   });
-  if (result.error) redirect("/requests?error=1");
+  if (result.error) redirect("/requests?new=1&error=request");
   revalidatePath("/jobs");
   redirect(`/requests?submitted=${result.data}`);
+}
+
+export async function saveTenantProfile(form: FormData) {
+  const db = await supabaseServer();
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) redirect("/login");
+  const contact = z.object({
+    first_name: z.string().trim().min(1).max(80),
+    surname: z.string().trim().min(1).max(80),
+    company: z.string().trim().min(1).max(120),
+    phone: z.string().regex(/^\+[1-9][0-9]{7,14}$/),
+  });
+  const phone = String(form.get("phone") ?? "").replace(/[\s()-]/g, "");
+  const result = contact.safeParse({
+    first_name: form.get("first_name"), surname: form.get("surname"), company: form.get("company"),
+    phone: /^0[0-9]{9}$/.test(phone) ? "+27" + phone.slice(1) : phone,
+  });
+  if (!result.success) redirect("/requests?profile=1&error=profile");
+  const { error } = await db.from("tenant_profiles").upsert({
+    user_id: user.id, ...result.data, updated_at: new Date().toISOString(),
+  });
+  if (error) redirect("/requests?profile=1&error=save");
+  redirect("/requests?new=1&saved=1");
 }

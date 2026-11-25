@@ -23,6 +23,16 @@ export type Database = {
           }
         },"public": {
           Tables: {
+            "tenant_profiles": {
+              Row: { user_id: string; first_name: string; surname: string; company: string; phone: string; updated_at: string };
+              Insert: { user_id: string; first_name: string; surname: string; company: string; phone: string; updated_at?: string };
+              Update: Partial<Database["public"]["Tables"]["tenant_profiles"]["Insert"]>;
+              Relationships: [];
+            };
+            "job_requester_contacts": {
+              Row: { job_id: string; first_name: string; surname: string; company: string; email: string; phone: string };
+              Insert: never; Update: never; Relationships: [];
+            };
             "alerts": {
                   Row: {
                     "id": string,"job_id": string | null,"kind": Database["public"]['Enums']["alert_kind"],"member_id": string | null,"org_id": string,"raised_at": string,"resolved_at": string | null
@@ -479,14 +489,14 @@ isOneToOne: false
                   ]
                 },"jobs": {
                   Row: {
-                    "approval": Database["public"]['Enums']["approval_state"],"trade": string | null,"preferred_worker": string | null,"arrived_at": string | null,"client_id": string,"completed_at": string | null,"created_at": string,"created_by": string | null,"deadline": string | null,"description": string | null,"estimate_min": number | null,"id": string,"job_type_id": string | null,"locked_at": string | null,"number": number,"on_site_seconds": number | null,"org_id": string,"ppm_schedule_id": string | null,"priority": number,"resolution_comment": string | null,"resolution_id": string | null,"scheduled_end": string | null,"scheduled_start": string | null,"site_id": string,"source": Database["public"]['Enums']["job_source"],"stage": Database["public"]['Enums']["job_stage"],"started_at": string | null,"status_id": string | null,"title": string,"updated_at": string
+                    "requester_user_id": string | null,"approval": Database["public"]['Enums']["approval_state"],"trade": string | null,"preferred_worker": string | null,"arrived_at": string | null,"client_id": string,"completed_at": string | null,"created_at": string,"created_by": string | null,"deadline": string | null,"description": string | null,"estimate_min": number | null,"id": string,"job_type_id": string | null,"locked_at": string | null,"number": number,"on_site_seconds": number | null,"org_id": string,"ppm_schedule_id": string | null,"priority": number,"resolution_comment": string | null,"resolution_id": string | null,"scheduled_end": string | null,"scheduled_start": string | null,"site_id": string,"source": Database["public"]['Enums']["job_source"],"stage": Database["public"]['Enums']["job_stage"],"started_at": string | null,"status_id": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "approval"?: Database["public"]['Enums']["approval_state"],"trade"?: string | null,"preferred_worker"?: string | null,"arrived_at"?: string | null,"client_id": string,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deadline"?: string | null,"description"?: string | null,"estimate_min"?: number | null,"id"?: string,"job_type_id"?: string | null,"locked_at"?: string | null,"number": number,"on_site_seconds"?: number | null,"org_id": string,"ppm_schedule_id"?: string | null,"priority"?: number,"resolution_comment"?: string | null,"resolution_id"?: string | null,"scheduled_end"?: string | null,"scheduled_start"?: string | null,"site_id": string,"source"?: Database["public"]['Enums']["job_source"],"stage"?: Database["public"]['Enums']["job_stage"],"started_at"?: string | null,"status_id"?: string | null,"title": string,"updated_at"?: string
+                    "requester_user_id"?: string | null,"approval"?: Database["public"]['Enums']["approval_state"],"trade"?: string | null,"preferred_worker"?: string | null,"arrived_at"?: string | null,"client_id": string,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deadline"?: string | null,"description"?: string | null,"estimate_min"?: number | null,"id"?: string,"job_type_id"?: string | null,"locked_at"?: string | null,"number": number,"on_site_seconds"?: number | null,"org_id": string,"ppm_schedule_id"?: string | null,"priority"?: number,"resolution_comment"?: string | null,"resolution_id"?: string | null,"scheduled_end"?: string | null,"scheduled_start"?: string | null,"site_id": string,"source"?: Database["public"]['Enums']["job_source"],"stage"?: Database["public"]['Enums']["job_stage"],"started_at"?: string | null,"status_id"?: string | null,"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "approval"?: Database["public"]['Enums']["approval_state"],"trade"?: string | null,"preferred_worker"?: string | null,"arrived_at"?: string | null,"client_id"?: string,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deadline"?: string | null,"description"?: string | null,"estimate_min"?: number | null,"id"?: string,"job_type_id"?: string | null,"locked_at"?: string | null,"number"?: number,"on_site_seconds"?: number | null,"org_id"?: string,"ppm_schedule_id"?: string | null,"priority"?: number,"resolution_comment"?: string | null,"resolution_id"?: string | null,"scheduled_end"?: string | null,"scheduled_start"?: string | null,"site_id"?: string,"source"?: Database["public"]['Enums']["job_source"],"stage"?: Database["public"]['Enums']["job_stage"],"started_at"?: string | null,"status_id"?: string | null,"title"?: string,"updated_at"?: string
+                    "requester_user_id"?: string | null,"approval"?: Database["public"]['Enums']["approval_state"],"trade"?: string | null,"preferred_worker"?: string | null,"arrived_at"?: string | null,"client_id"?: string,"completed_at"?: string | null,"created_at"?: string,"created_by"?: string | null,"deadline"?: string | null,"description"?: string | null,"estimate_min"?: number | null,"id"?: string,"job_type_id"?: string | null,"locked_at"?: string | null,"number"?: number,"on_site_seconds"?: number | null,"org_id"?: string,"ppm_schedule_id"?: string | null,"priority"?: number,"resolution_comment"?: string | null,"resolution_id"?: string | null,"scheduled_end"?: string | null,"scheduled_start"?: string | null,"site_id"?: string,"source"?: Database["public"]['Enums']["job_source"],"stage"?: Database["public"]['Enums']["job_stage"],"started_at"?: string | null,"status_id"?: string | null,"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -865,13 +875,16 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
+            "office_tenant_contacts": { Args: { p_org: string }; Returns: {
+              user_id: string; site_id: string; first_name: string; surname: string; company: string;
+            }[] };
             "tenant_sites": { Args: Record<string, never>; Returns: { id: string; label: string }[] };
             "tenant_requests": { Args: Record<string, never>; Returns: { number: number; title: string; status: string; logged_at: string }[] };
             "submit_tenant_request": { Args: { p_site: string; p_trade: string; p_title: string; p_description: string }; Returns: number };
             "review_job": { Args: { p_job: string; p_decision: string }; Returns: undefined };
             "assign_job":
 { Args: { "p_job": string,"p_members": (string)[] }; Returns: {
-              "approval": Database["public"]['Enums']["approval_state"],"trade": string | null,"preferred_worker": string | null,
+              "requester_user_id": string | null,"approval": Database["public"]['Enums']["approval_state"],"trade": string | null,"preferred_worker": string | null,
 "arrived_at": string | null,
 "client_id": string,
 "completed_at": string | null,

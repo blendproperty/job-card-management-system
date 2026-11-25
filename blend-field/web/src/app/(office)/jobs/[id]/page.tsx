@@ -25,6 +25,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
     throw e;
   }
   const { created } = await searchParams;
+  const { data: requester, error: requesterError } = await me.db.from("job_requester_contacts").select("*").eq("job_id", id).maybeSingle();
+  if (requesterError) throw new Error("Could not load the requester contact.");
   const people = job.locked_at ? [] : await listMembers(me, { field: true });
   const photos = job.attachments.filter((a) => a.kind === "photo");
   const signature = job.attachments.find((a) => a.kind === "signature");
@@ -94,6 +96,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                 {job.site.label}<span className="block text-xs text-text-muted">{job.site.address}</span>
               </Fact>
               <Fact icon={<UserCheck />} term="Client">{job.client.name}</Fact>
+              {requester && <Fact icon={<UserCheck />} term="Tenant contact">
+                {requester.first_name} {requester.surname} · {requester.company}
+                <span className="block text-xs text-text-muted break-all">{requester.email}</span>
+                <a className="text-accent-text underline" href={`tel:${requester.phone}`}>{requester.phone}</a>
+              </Fact>}
               <Fact icon={<Clock />} term="Slot">{fmtSlot(job.scheduled_start, job.scheduled_end)}</Fact>
               <Fact icon={<Clock />} term="Logged">{fmtDayTime(job.created_at)}</Fact>
               {job.started_at && <Fact icon={<Clock />} term="Work started">{fmtDayTime(job.started_at)}</Fact>}

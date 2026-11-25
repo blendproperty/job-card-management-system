@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Box, Building2, CalendarDays, ClipboardList, Map, Receipt, Settings } from "lucide-react";
+import { BarChart3, Box, Building2, CalendarDays, ClipboardList, Map, Receipt, Settings, UsersRound } from "lucide-react";
 
 const ITEMS = [
+  { href: "/role-views", label: "Role views", Icon: UsersRound },
   { href: "/map", label: "Field locations", Icon: Map },
   { href: "/jobs", label: "Jobs", Icon: ClipboardList },
   { href: "/schedule", label: "Schedule", Icon: CalendarDays },

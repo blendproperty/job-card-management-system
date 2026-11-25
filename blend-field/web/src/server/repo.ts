@@ -118,6 +118,7 @@ export interface CreateJobInput {
   estimate_min?: number | null;
   assignee_id?: string | null;
   trade: string;
+  requester_user_id?: string;
 }
 
 export async function createJob(actor: Actor, input: CreateJobInput): Promise<Job> {
@@ -140,6 +141,7 @@ export async function createJob(actor: Actor, input: CreateJobInput): Promise<Jo
       estimate_min: input.estimate_min ?? null,
       created_by: actor.id,
       trade: input.trade,
+      requester_user_id: input.requester_user_id ?? null,
       approval: "awaiting",
       preferred_worker: input.assignee_id ?? null,
     })
