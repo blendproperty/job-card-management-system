@@ -1,5 +1,5 @@
 import { LogOut, Plus, Search } from "lucide-react";
-import { NavLinks } from "@/components/nav-links";
+import { MobileNavLinks, NavLinks } from "@/components/nav-links";
 import { ButtonLink, initials } from "@/components/ui";
 import { requireOffice } from "@/server/auth";
 import { signOutAction } from "../actions";
@@ -39,6 +39,7 @@ export default async function OfficeLayout({ children }: { children: React.React
             </form>
           </div>
         </header>
+        <MobileNavLinks />
         <main id="main" className="mx-auto w-full max-w-content flex-1 px-4 py-5 md:px-6">{children}</main>
       </div>
     </div>

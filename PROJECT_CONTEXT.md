@@ -60,3 +60,13 @@ Testing: The VPS built the Next.js production image and Expo browser bundle. The
 Commit and push: Office workflow b46a44b and field deployment cb33154 pushed to codex/blend-field-foundation-20261125. Merge: none. Deployment and configuration: both SQL migrations applied in one transaction to the dedicated Job Cards Postgres. Office runtime b46a44b and field runtime cb33154 deployed in separate Docker services. No live users or worker trade mappings were added and no messaging settings changed.
 
 Live production verification: Office login returned HTTPS 200, unauthenticated requests redirected to login, and both workflow functions were present in live Postgres. Field HTML and JavaScript returned HTTPS 200 after certificate issuance. The field bundle points to the dedicated Job Cards API, and the live API allowed the field origin for auth requests. Real tenant and engineer sign-in, private media upload and full workflow UAT remain unverified. The administrator role is the current closure authority. Dedicated FM access, contractor sign-off, overtime, durable offline use, native device rollout, WhatsApp setup, approved data, backup/restore and staff acceptance remain open.
+
+## 2026-11-25 — Showcase workflows and office workspace
+
+Implementation: Replaced the milestone placeholders with working schedule, client and property, asset, invoice draft, job report, field location and team settings screens. Added mobile office navigation, opt-in browser location sharing, account-scoped browser storage for cached field jobs and queued changes, worker sign-off and time capture, a dedicated organisation-scoped facility manager role, overtime approval and closure.
+
+Testing: TypeScript and lint passed for office and field. Local PostgreSQL rolled back transactional checks that covered tenant scope, approval and allocation, reassignment, field transitions, sign-off requirements and facility manager overtime approval, with one audited closure event. Browser restart, media replay and live testing are pending this checkpoint.
+
+Commit and push: implementation follows on codex/blend-field-foundation-20261125. Merge: none. Deployment and configuration: pending. Live production verification: pending.
+
+The invoice screen supports local draft records. Xero export, payments, owner quote decisions, recurring asset service automation, native app release, approved live data, backup/restore and staff acceptance remain open. WhatChimp live delivery depends on verification and templates for Job Card Mobile +27 60 017 8025.

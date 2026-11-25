@@ -1,31 +1,34 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import { Platform, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { myJobs } from "../api";
-import { flush, onPending, pendingCount } from "../outbox";
+import { supabase } from "../supabase";
+import { flush, onPending, pendingCount, withPending } from "../outbox";
 import { Banner, Button, Card, color, OutcomeBadge, StatusPill, T } from "../ui";
 import { fmtSlot } from "../format";
 import type { FieldJob } from "../types";
 
 /** M02 My day: today's jobs in slot order; the first open one is marked Next. */
 export function MyDayScreen({ me, onOpen, onSignOut }: {
-  me: { display_name: string }; onOpen: (id: string) => void; onSignOut: () => void;
+  me: { id: string; org_id: string; display_name: string }; onOpen: (id: string) => void; onSignOut: () => void;
 }) {
   const insets = useSafeAreaInsets();
   const [jobs, setJobs] = useState<FieldJob[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [location, setLocation] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
   const [pending, setPending] = useState(pendingCount());
 
   useEffect(() => onPending(setPending), []);
 
   const load = useCallback(async () => {
     setRefreshing(true);
-    await flush();
+    const result = await flush();
     try {
       const list = await myJobs();
-      setJobs(list);
-      setError(null);
+      setJobs(list.map(withPending));
+      setError(result.rejected.length ? result.rejected.map((x) => x.reason).join(" ") : null);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -34,6 +37,28 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
   }, []);
   // Start loading after an async boundary (load sets state).
   useEffect(() => { Promise.resolve().then(load); }, [load]);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    window.addEventListener("online", load);
+    return () => window.removeEventListener("online", load);
+  }, [load]);
+
+  const shareLocation = () => {
+    setSharing(true);
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const { latitude, longitude, accuracy } = position.coords;
+      const { error } = await supabase.from("member_locations").upsert({
+        member_id: me.id, org_id: me.org_id, lat: latitude, lng: longitude, accuracy_m: accuracy,
+        recorded_at: new Date(position.timestamp).toISOString(),
+      });
+      setLocation(error ? "Could not share your location." : "Location shared with your office.");
+      setSharing(false);
+    }, () => {
+      setLocation("Location unavailable. Check browser permissions and try again.");
+      setSharing(false);
+    }, { timeout: 10000 });
+  };
 
   const open = jobs?.filter((j) => j.stage !== "completed") ?? [];
   const done = jobs?.filter((j) => j.stage === "completed") ?? [];
@@ -53,6 +78,9 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
         contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 24 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={load} tintColor={color["accent-text"]} />}
       >
+        {Platform.OS === "web" && "geolocation" in navigator &&
+          <Button label="Share current location with office" variant="secondary" loading={sharing} onPress={shareLocation} />}
+        {location && <T variant="sm" muted>{location}</T>}
         {error && <Banner tone="danger">{error}</Banner>}
         {jobs && jobs.length === 0 && (
           <Card style={{ alignItems: "center", paddingVertical: 32 }}>

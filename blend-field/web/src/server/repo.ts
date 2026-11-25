@@ -13,7 +13,7 @@ export class Forbidden extends Error {}
 export class NotFound extends Error {}
 export class Invalid extends Error {}
 
-const isOffice = (m: Member) => m.role === "admin" || m.role === "office";
+const isOffice = (m: Member) => m.role === "admin" || m.role === "office" || m.role === "facility_manager";
 
 function fail(e: PostgrestError): never {
   if (e.code === "P0001") throw new Invalid(e.message);

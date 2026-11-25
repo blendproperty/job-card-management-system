@@ -6,6 +6,6 @@ COPY . .
 ARG EXPO_PUBLIC_SUPABASE_URL
 ARG EXPO_PUBLIC_SUPABASE_ANON_KEY
 ENV EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY=$EXPO_PUBLIC_SUPABASE_ANON_KEY CI=1 EXPO_NO_TELEMETRY=1
-RUN npx --no-install expo export --platform web
+RUN npx --no-install expo export --platform web && node scripts/build-offline-worker.mjs
 FROM nginx:alpine
 COPY --from=build /app/dist/ /usr/share/nginx/html/

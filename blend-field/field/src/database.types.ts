@@ -479,7 +479,7 @@ isOneToOne: false
                   ]
                 },"jobs": {
                   Row: {
-                    "approval": Database["public"]['Enums']["approval_state"],"arrived_at": string | null,"client_id": string,"completed_at": string | null,"created_at": string,"created_by": string | null,"deadline": string | null,"description": string | null,"estimate_min": number | null,"id": string,"job_type_id": string | null,"locked_at": string | null,"number": number,"on_site_seconds": number | null,"org_id": string,"ppm_schedule_id": string | null,"priority": number,"resolution_comment": string | null,"resolution_id": string | null,"scheduled_end": string | null,"scheduled_start": string | null,"site_id": string,"source": Database["public"]['Enums']["job_source"],"stage": Database["public"]['Enums']["job_stage"],"started_at": string | null,"status_id": string | null,"title": string,"updated_at": string
+                    "approval": Database["public"]['Enums']["approval_state"],"trade": string | null,"arrived_at": string | null,"client_id": string,"completed_at": string | null,"created_at": string,"created_by": string | null,"deadline": string | null,"description": string | null,"estimate_min": number | null,"id": string,"job_type_id": string | null,"locked_at": string | null,"number": number,"on_site_seconds": number | null,"org_id": string,"ppm_schedule_id": string | null,"priority": number,"resolution_comment": string | null,"resolution_id": string | null,"scheduled_end": string | null,"scheduled_start": string | null,"site_id": string,"source": Database["public"]['Enums']["job_source"],"stage": Database["public"]['Enums']["job_stage"],"started_at": string | null,"status_id": string | null,"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
@@ -867,7 +867,7 @@ isOneToOne: false
           Functions: {
             "assign_job":
 { Args: { "p_job": string,"p_members": (string)[] }; Returns: {
-              "approval": Database["public"]['Enums']["approval_state"],
+              "approval": Database["public"]['Enums']["approval_state"],"trade": string | null,
 "arrived_at": string | null,
 "client_id": string,
 "completed_at": string | null,
@@ -955,7 +955,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "alert_kind": "overrun"|"no_checkin"|"late_start"|"sync_stale","approval_state": "not_required"|"awaiting"|"approved"|"rejected","attachment_kind": "photo"|"signature"|"document","attachment_stage": "before"|"during"|"after"|"other","channel": "whatsapp"|"sms"|"email","contact_role": "owner"|"tenant"|"agent"|"other","invoice_state": "draft"|"issued"|"paid"|"void","job_source": "manual"|"ppm"|"mobile"|"tenant_request","job_stage": "unassigned"|"assigned"|"en_route"|"arrived"|"in_progress"|"pending"|"completed"|"cancelled","member_role": "admin"|"office"|"engineer"|"contractor","notify_state": "queued"|"sent"|"delivered"|"read"|"failed","quote_state": "draft"|"sent"|"approved"|"rejected"|"expired"
+            "alert_kind": "overrun"|"no_checkin"|"late_start"|"sync_stale","approval_state": "not_required"|"awaiting"|"approved"|"rejected","attachment_kind": "photo"|"signature"|"document","attachment_stage": "before"|"during"|"after"|"other","channel": "whatsapp"|"sms"|"email","contact_role": "owner"|"tenant"|"agent"|"other","invoice_state": "draft"|"issued"|"paid"|"void","job_source": "manual"|"ppm"|"mobile"|"tenant_request","job_stage": "unassigned"|"assigned"|"en_route"|"arrived"|"in_progress"|"pending"|"completed"|"cancelled","member_role": "admin"|"office"|"engineer"|"contractor"|"facility_manager","notify_state": "queued"|"sent"|"delivered"|"read"|"failed","quote_state": "draft"|"sent"|"approved"|"rejected"|"expired"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1075,7 +1075,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "alert_kind": ["overrun", "no_checkin", "late_start", "sync_stale"],"approval_state": ["not_required", "awaiting", "approved", "rejected"],"attachment_kind": ["photo", "signature", "document"],"attachment_stage": ["before", "during", "after", "other"],"channel": ["whatsapp", "sms", "email"],"contact_role": ["owner", "tenant", "agent", "other"],"invoice_state": ["draft", "issued", "paid", "void"],"job_source": ["manual", "ppm", "mobile", "tenant_request"],"job_stage": ["unassigned", "assigned", "en_route", "arrived", "in_progress", "pending", "completed", "cancelled"],"member_role": ["admin", "office", "engineer", "contractor"],"notify_state": ["queued", "sent", "delivered", "read", "failed"],"quote_state": ["draft", "sent", "approved", "rejected", "expired"]
+            "alert_kind": ["overrun", "no_checkin", "late_start", "sync_stale"],"approval_state": ["not_required", "awaiting", "approved", "rejected"],"attachment_kind": ["photo", "signature", "document"],"attachment_stage": ["before", "during", "after", "other"],"channel": ["whatsapp", "sms", "email"],"contact_role": ["owner", "tenant", "agent", "other"],"invoice_state": ["draft", "issued", "paid", "void"],"job_source": ["manual", "ppm", "mobile", "tenant_request"],"job_stage": ["unassigned", "assigned", "en_route", "arrived", "in_progress", "pending", "completed", "cancelled"],"member_role": ["admin", "office", "engineer", "contractor", "facility_manager"],"notify_state": ["queued", "sent", "delivered", "read", "failed"],"quote_state": ["draft", "sent", "approved", "rejected", "expired"]
           }
         }
 } as const

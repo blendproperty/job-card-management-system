@@ -11,7 +11,7 @@ const REASON: Record<string, string> = {
 /** S01 Sign in: emailed one-time code. */
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
   const me = await currentActor();
-  if (me && (me.role === "office" || me.role === "admin")) redirect("/jobs");
+  if (me && (me.role === "office" || me.role === "admin" || me.role === "facility_manager")) redirect("/jobs");
   const { reason } = await searchParams;
   return (
     <main className="grid min-h-dvh place-items-center bg-nav-bg px-4">

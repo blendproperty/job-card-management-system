@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { BarChart3, Box, Building2, CalendarDays, ClipboardList, Map, Receipt, Settings } from "lucide-react";
 
 const ITEMS = [
-  { href: "/map", label: "Live map", Icon: Map },
+  { href: "/map", label: "Field locations", Icon: Map },
   { href: "/jobs", label: "Jobs", Icon: ClipboardList },
   { href: "/schedule", label: "Schedule", Icon: CalendarDays },
   { href: "/clients", label: "Clients", Icon: Building2 },
@@ -29,6 +29,16 @@ function Item({ href, label, Icon }: (typeof ITEMS)[number]) {
       {label}
     </Link>
   );
+}
+
+export function MobileNavLinks() {
+  const path = usePathname();
+  return <nav aria-label="Office sections" className="flex gap-1 overflow-x-auto border-b border-border bg-bg px-3 py-2 md:hidden">
+    {[...ITEMS, { href: "/settings", label: "Settings" }].map(({ href, label }) => (
+      <Link key={href} href={href} aria-current={(path === href || path.startsWith(href + "/")) ? "page" : undefined}
+        className="whitespace-nowrap rounded-md px-2.5 py-2 text-sm text-accent-text aria-[current=page]:bg-accent-soft aria-[current=page]:font-bold">{label}</Link>
+    ))}
+  </nav>;
 }
 
 export function NavLinks() {

@@ -3,7 +3,7 @@ import { Platform, Pressable, ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { myJob, nowIso, storagePath, uuid } from "../api";
-import { enqueue, type FlushResult } from "../outbox";
+import { enqueue, flush, withPending, type FlushResult } from "../outbox";
 import { OutcomeSheet, type OutcomeChoice } from "../OutcomeSheet";
 import { SignaturePad } from "../SignaturePad";
 import { Banner, Button, Card, color, font, OutcomeBadge, StatusPill, T } from "../ui";
@@ -26,6 +26,11 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
   const [svg, setSvg] = useState<string | null>(null);
   const [nameFocused, setNameFocused] = useState(false);
   const [sheet, setSheet] = useState(false);
+  const [workMinutes, setWorkMinutes] = useState("");
+  const [overtimeMinutes, setOvertimeMinutes] = useState("0");
+  const [workerSigned, setWorkerSigned] = useState(false);
+  const validSignoff = /^[0-9]{1,5}$/.test(workMinutes) && /^[0-9]{1,5}$/.test(overtimeMinutes) &&
+    Number(workMinutes) <= 10080 && Number(overtimeMinutes) <= Number(workMinutes) && workerSigned;
   const [offline, setOffline] = useState(false);
   const scroller = useRef<ComponentRef<typeof ScrollView>>(null);
   const sectionY = useRef<{ photo?: number; signature?: number }>({});
@@ -33,7 +38,7 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
   const load = useCallback(async () => {
     try {
       const j = await myJob(id);
-      setJob(j);
+      setJob(withPending(j));
       setError(null);
       if (j.stage === "in_progress") setPhotoStage((s) => (s === "before" ? "after" : s));
     } catch (e) {
@@ -42,6 +47,17 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
   }, [id]);
   // Start loading after an async boundary (load sets state).
   useEffect(() => { Promise.resolve().then(load); }, [load]);
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const reconnect = () => { void flush().then((result) => {
+      setOffline(result.offline);
+      if (result.rejected.length) setNotice({ tone: "danger", text: result.rejected.map((x) => x.reason).join(" ") });
+      return load();
+    }); };
+    window.addEventListener("online", reconnect);
+    return () => window.removeEventListener("online", reconnect);
+  }, [load]);
 
   const after = async (r: FlushResult) => {
     if (r.rejected.length) setNotice({ tone: "danger", text: r.rejected.map((x) => x.reason).join(" ") });
@@ -67,6 +83,7 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
     const r = await after(await enqueue({
       op_id: uuid(), type: "status", job_id: job.id, to: "completed", occurred_at: nowIso(),
       resolution_id: outcome.id, resolution_comment: comment,
+      work_minutes: Number(workMinutes), overtime_minutes: Number(overtimeMinutes), worker_signed: workerSigned,
     }));
     return r.rejected.length === 0;
   };
@@ -125,7 +142,8 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
   const signature = job?.attachments.find((a) => a.kind === "signature");
   const onSite = !!job && ON_SITE.includes(job.stage);
   const missing = [
-    ...(photos.length ? [] : [{ key: "photo" as const, label: "Add at least one photo" }]),
+    ...((job?.trade ? photos.some((p) => p.stage === "before") && photos.some((p) => p.stage === "after") : photos.length)
+      ? [] : [{ key: "photo" as const, label: job?.trade ? "Add before and after photos" : "Add at least one photo" }]),
     ...(signature ? [] : [{ key: "signature" as const, label: "Get the customer's signature" }]),
   ];
 
@@ -195,6 +213,19 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
               </View>
             )}
 
+            {job.trade && job.stage === "in_progress" && (
+              <Card>
+                <Label>Worker sign-off</Label>
+                <T>Total work time (minutes)</T>
+                <TextInput accessibilityLabel="Total work time in minutes" inputMode="numeric" value={workMinutes} onChangeText={setWorkMinutes} style={{ minHeight: 44, borderWidth: 1, borderColor: color.border, padding: 8 }} />
+                <T>Overtime included (minutes)</T>
+                <TextInput accessibilityLabel="Overtime included in total work time" inputMode="numeric" value={overtimeMinutes} onChangeText={setOvertimeMinutes} style={{ minHeight: 44, borderWidth: 1, borderColor: color.border, padding: 8 }} />
+                <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: workerSigned }} onPress={() => setWorkerSigned(!workerSigned)} style={{ minHeight: 44, justifyContent: "center" }}>
+                  <T>{workerSigned ? "✓" : "□"} I confirm these work details and sign off as the assigned worker</T>
+                </Pressable>
+              </Card>
+            )}
+
             {(onSite || signature) && (
               <View style={{ gap: 8 }} onLayout={(e) => { sectionY.current.signature = e.nativeEvent.layout.y; }}>
                 <Label>Customer signature</Label>
@@ -230,7 +261,7 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
 
       {job?.next && !job.locked_at && (
         <View style={{ padding: 16, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: color.border, gap: 6 }}>
-          <Button tall label={job.next.label} loading={busy === "status"} onPress={advance} />
+          <Button tall label={job.next.label} disabled={!!job.trade && job.next.to === "completed" && !validSignoff} loading={busy === "status"} onPress={advance} />
         </View>
       )}
       {job?.locked_at && (

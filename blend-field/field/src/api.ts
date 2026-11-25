@@ -1,4 +1,5 @@
 import * as Crypto from "expo-crypto";
+import { offlineAccount, readOffline, writeOffline } from "./offline";
 import { supabase } from "./supabase";
 import { completionBlockers, nextAction, type FieldJob, type Member, type Outcome, type Stage } from "./types";
 
@@ -10,7 +11,7 @@ export class ApiError extends Error {
 function toApiError(e: { message: string; code?: string; status?: number }): ApiError {
   if (/fetch|network/i.test(e.message)) return new ApiError(0, "No connection. Your changes are kept on this phone.");
   if (e.code === "PGRST301" || e.status === 401) return new ApiError(401, "Sign in again.");
-  return new ApiError(e.status ?? 500, e.message || "Something went wrong.");
+  return new ApiError(e.status ?? (e.code && /^[0-9A-Z]{5}$/.test(e.code) ? 400 : 500), e.message || "Something went wrong.");
 }
 
 async function run<T>(p: PromiseLike<{ data: T; error: { message: string; code?: string } | null }>): Promise<T> {
@@ -25,7 +26,8 @@ async function run<T>(p: PromiseLike<{ data: T; error: { message: string; code?:
 }
 
 export async function me(): Promise<Member | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error) throw toApiError(error);
   if (!user) return null;
   return run(supabase.from("members").select("*").eq("user_id", user.id).eq("active", true).limit(1).maybeSingle());
 }
@@ -36,21 +38,48 @@ const withNext = (j: Omit<FieldJob, "next" | "blockers">): FieldJob => {
   return { ...j, next, blockers: next?.to === "completed" ? completionBlockers(j.attachments) : [] };
 };
 
+async function cached<T>(key: string, load: () => Promise<T>): Promise<T> {
+  const owner = offlineAccount();
+  try {
+    const result = await load();
+    if (owner === offlineAccount()) await writeOffline(key, result).catch(() => undefined);
+    return result;
+  } catch (error) {
+    if (owner === offlineAccount() && error instanceof ApiError && error.status === 0) {
+      const previous = await readOffline<T>(key).catch(() => undefined);
+      if (previous !== undefined) return previous;
+    }
+    throw error;
+  }
+}
+
 /** RLS returns only jobs assigned to the signed-in user. */
 export async function myJobs(): Promise<FieldJob[]> {
-  const rows = await run(supabase.from("jobs").select(JOB_SELECT).neq("stage", "cancelled")
-    .order("scheduled_start", { ascending: true, nullsFirst: false }));
-  return (rows as unknown as Omit<FieldJob, "next" | "blockers">[]).map(withNext);
+  return cached("jobs", async () => {
+    const rows = await run(supabase.from("jobs").select(JOB_SELECT).neq("stage", "cancelled")
+      .order("scheduled_start", { ascending: true, nullsFirst: false }));
+    return (rows as unknown as Omit<FieldJob, "next" | "blockers">[]).map(withNext);
+  });
 }
 
 export async function myJob(id: string): Promise<FieldJob> {
-  const row = await run(supabase.from("jobs").select(JOB_SELECT).eq("id", id).maybeSingle());
-  if (!row) throw new ApiError(404, "This job isn't assigned to you any more.");
-  return withNext(row as unknown as Omit<FieldJob, "next" | "blockers">);
+  try {
+    return await cached("job:" + id, async () => {
+      const row = await run(supabase.from("jobs").select(JOB_SELECT).eq("id", id).maybeSingle());
+      if (!row) throw new ApiError(404, "This job isn't assigned to you any more.");
+      return withNext(row as unknown as Omit<FieldJob, "next" | "blockers">);
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 0) {
+      const previous = (await readOffline<FieldJob[]>("jobs"))?.find((job) => job.id === id);
+      if (previous) return previous;
+    }
+    throw error;
+  }
 }
 
 export type Op =
-  | { op_id: string; type: "status"; job_id: string; to: Stage; occurred_at: string; resolution_id?: string; resolution_comment?: string | null }
+  | { op_id: string; type: "status"; job_id: string; to: Stage; occurred_at: string; resolution_id?: string; resolution_comment?: string | null; work_minutes?: number; overtime_minutes?: number; worker_signed?: boolean }
   | { op_id: string; type: "follow_up"; job_id: string; note?: string | null; occurred_at: string }
   | {
       op_id: string; type: "attachment"; job_id: string; attachment_id: string; kind: "photo" | "signature";
@@ -88,10 +117,10 @@ let outcomeCache: { all: Outcome[]; byType: Record<string, string[]> } | null = 
 export async function outcomesFor(jobTypeId: string | null): Promise<Outcome[]> {
   let cache = outcomeCache;
   if (!cache) {
-    const [all, links] = await Promise.all([
+    const [all, links] = await cached("outcomes", () => Promise.all([
       run(supabase.from("resolutions").select("id, name, successful, requires_comment, suggest_follow_up, sort").eq("archived", false).order("sort")),
       run(supabase.from("job_type_resolutions").select("job_type_id, resolution_id")),
-    ]);
+    ]));
     const byType: Record<string, string[]> = {};
     (links ?? []).forEach((l) => (byType[l.job_type_id] ??= []).push(l.resolution_id));
     cache = outcomeCache = { all: all ?? [], byType };

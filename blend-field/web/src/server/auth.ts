@@ -17,6 +17,6 @@ export async function currentActor(): Promise<Actor | null> {
 export async function requireOffice(): Promise<Actor> {
   const a = await currentActor();
   if (!a) redirect("/login");
-  if (a.role !== "office" && a.role !== "admin") redirect("/login?reason=field");
+  if (a.role !== "office" && a.role !== "admin" && a.role !== "facility_manager") redirect("/login?reason=field");
   return a;
 }

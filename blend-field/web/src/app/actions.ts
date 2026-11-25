@@ -110,7 +110,7 @@ export async function assignJobAction(_prev: FormState, form: FormData): Promise
 export async function reviewJobAction(_prev: FormState, form: FormData): Promise<FormState> {
   const me = await requireOffice();
   const id = z.uuid().safeParse(form.get("job_id"));
-  const decision = z.enum(["approve", "reject", "close"]).safeParse(form.get("decision"));
+  const decision = z.enum(["approve", "reject", "close", "close_approve_overtime", "close_decline_overtime"]).safeParse(form.get("decision"));
   if (!id.success || !decision.success) return { error: "Choose a valid review action." };
   const { error } = await me.db.rpc("review_job", { p_job: id.data, p_decision: decision.data });
   if (error) return { error: error.code === "P0001" ? error.message : "Could not review this job." };

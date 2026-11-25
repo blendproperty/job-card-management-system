@@ -959,7 +959,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "alert_kind": "overrun"|"no_checkin"|"late_start"|"sync_stale","approval_state": "not_required"|"awaiting"|"approved"|"rejected","attachment_kind": "photo"|"signature"|"document","attachment_stage": "before"|"during"|"after"|"other","channel": "whatsapp"|"sms"|"email","contact_role": "owner"|"tenant"|"agent"|"other","invoice_state": "draft"|"issued"|"paid"|"void","job_source": "manual"|"ppm"|"mobile"|"tenant_request","job_stage": "unassigned"|"assigned"|"en_route"|"arrived"|"in_progress"|"pending"|"completed"|"cancelled","member_role": "admin"|"office"|"engineer"|"contractor","notify_state": "queued"|"sent"|"delivered"|"read"|"failed","quote_state": "draft"|"sent"|"approved"|"rejected"|"expired"
+            "alert_kind": "overrun"|"no_checkin"|"late_start"|"sync_stale","approval_state": "not_required"|"awaiting"|"approved"|"rejected","attachment_kind": "photo"|"signature"|"document","attachment_stage": "before"|"during"|"after"|"other","channel": "whatsapp"|"sms"|"email","contact_role": "owner"|"tenant"|"agent"|"other","invoice_state": "draft"|"issued"|"paid"|"void","job_source": "manual"|"ppm"|"mobile"|"tenant_request","job_stage": "unassigned"|"assigned"|"en_route"|"arrived"|"in_progress"|"pending"|"completed"|"cancelled","member_role": "admin"|"office"|"engineer"|"contractor"|"facility_manager","notify_state": "queued"|"sent"|"delivered"|"read"|"failed","quote_state": "draft"|"sent"|"approved"|"rejected"|"expired"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1079,7 +1079,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "alert_kind": ["overrun", "no_checkin", "late_start", "sync_stale"],"approval_state": ["not_required", "awaiting", "approved", "rejected"],"attachment_kind": ["photo", "signature", "document"],"attachment_stage": ["before", "during", "after", "other"],"channel": ["whatsapp", "sms", "email"],"contact_role": ["owner", "tenant", "agent", "other"],"invoice_state": ["draft", "issued", "paid", "void"],"job_source": ["manual", "ppm", "mobile", "tenant_request"],"job_stage": ["unassigned", "assigned", "en_route", "arrived", "in_progress", "pending", "completed", "cancelled"],"member_role": ["admin", "office", "engineer", "contractor"],"notify_state": ["queued", "sent", "delivered", "read", "failed"],"quote_state": ["draft", "sent", "approved", "rejected", "expired"]
+            "alert_kind": ["overrun", "no_checkin", "late_start", "sync_stale"],"approval_state": ["not_required", "awaiting", "approved", "rejected"],"attachment_kind": ["photo", "signature", "document"],"attachment_stage": ["before", "during", "after", "other"],"channel": ["whatsapp", "sms", "email"],"contact_role": ["owner", "tenant", "agent", "other"],"invoice_state": ["draft", "issued", "paid", "void"],"job_source": ["manual", "ppm", "mobile", "tenant_request"],"job_stage": ["unassigned", "assigned", "en_route", "arrived", "in_progress", "pending", "completed", "cancelled"],"member_role": ["admin", "office", "engineer", "contractor", "facility_manager"],"notify_state": ["queued", "sent", "delivered", "read", "failed"],"quote_state": ["draft", "sent", "approved", "rejected", "expired"]
           }
         }
 } as const

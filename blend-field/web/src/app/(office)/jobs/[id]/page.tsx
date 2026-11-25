@@ -29,6 +29,11 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const photos = job.attachments.filter((a) => a.kind === "photo");
   const signature = job.attachments.find((a) => a.kind === "signature");
   const closure = job.events.find((event) => (event.payload as { review?: string } | null)?.review === "close");
+  const completion = job.events.findLast((event) => event.to_stage === "completed");
+  const work = completion?.payload as { work_minutes?: number; overtime_minutes?: number; worker_signed?: boolean } | undefined;
+  const overtime = work?.overtime_minutes ?? 0;
+  const approvedOvertime = (closure?.payload as { approved_overtime_minutes?: number } | undefined)?.approved_overtime_minutes;
+  const canClose = (me.role === "admin" || me.role === "facility_manager") && job.stage === "completed";
   const mayAssign = !job.locked_at && job.approval !== "awaiting" && job.approval !== "rejected";
   const overdue = isOverdue(job.stage, job.scheduled_end);
   const live = !job.locked_at && job.stage !== "unassigned";
@@ -149,13 +154,17 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         </div>
 
         <aside className="flex flex-col gap-5">
-          {(job.trade || closure || (me.role === "admin" && job.stage === "completed")) && (
+          {(job.trade || closure || canClose) && (
             <Card className="flex flex-col gap-3">
               <h2 className="font-semibold">Review and closure</h2>
               {job.trade && <p className="capitalize">{job.trade}</p>}
               {job.approval === "awaiting" && <ReviewForm jobId={job.id} phase="dispatch" />}
               {closure && <p>Closed by {closure.member_name ?? "an administrator"} · {fmtDayTime(closure.occurred_at)}</p>}
-              {!closure && me.role === "admin" && job.stage === "completed" && <ReviewForm jobId={job.id} phase="closure" />}
+              {work?.worker_signed && (
+                <p>Signed off by {completion?.member_name ?? "the assigned worker"} · {work.work_minutes} min worked · {overtime} min overtime</p>
+              )}
+              {closure && overtime > 0 && <p>{approvedOvertime ?? 0} min overtime approved</p>}
+              {!closure && canClose && <ReviewForm jobId={job.id} phase="closure" overtime={overtime} />}
             </Card>
           )}
           <Card>
