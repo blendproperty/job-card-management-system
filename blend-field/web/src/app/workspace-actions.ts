@@ -10,23 +10,23 @@ const date = z.iso.date();
 
 export async function workspaceAction(section: string, form: FormData) {
   const actor = await requireOffice();
-  if (!["clients", "assets", "schedule", "invoices", "settings"].includes(section)) return;
+  if (!["properties", "assets", "schedule", "invoices", "settings"].includes(section)) return;
   const target = "/" + section;
   const input = (key: string) => String(form.get(key) ?? "").trim();
   const fail = (message: string): never => redirect(target + "?error=" + encodeURIComponent(message));
   const db = actor.db;
   let result: { error: { code?: string } | null };
-  if (section === "clients" && input("kind") === "client") {
+  if (section === "properties" && input("kind") === "client") {
     const client = name.safeParse(input("name"));
-    if (!client.success) return fail("Enter a client name.");
+    if (!client.success) return fail("Enter a property owner name.");
     result = await db.from("clients").insert({ org_id: actor.org_id, name: client.data });
-  } else if (section === "clients") {
+  } else if (section === "properties") {
     const site = z.object({ client: id, name, address: z.string().min(3).max(280) }).safeParse({
       client: input("client"), name: input("name"), address: input("address"),
     });
-    if (!site.success) return fail("Choose a client and fill in the property name and address.");
+    if (!site.success) return fail("Choose a property owner and fill in the property name and address.");
     const { data } = await db.from("clients").select("id").eq("org_id", actor.org_id).eq("id", site.data.client).maybeSingle();
-    if (!data) return fail("Choose a client in this organisation.");
+    if (!data) return fail("Choose a property owner in this organisation.");
     result = await db.from("sites").insert({ org_id: actor.org_id, client_id: data.id, label: site.data.name, address: site.data.address });
   } else if (section === "assets") {
     const asset = z.object({ site: id, type: name, make: z.string().max(100), serial: z.string().max(120) }).safeParse({

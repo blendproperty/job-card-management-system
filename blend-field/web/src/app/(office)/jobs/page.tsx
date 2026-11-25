@@ -49,7 +49,7 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
       <div className="mt-4">
         {jobs.length === 0 ? (
           q ? (
-            <EmptyState icon={<SearchX />} title="No jobs match" hint="Try a job number, street, unit or client name." />
+            <EmptyState icon={<SearchX />} title="No jobs match" hint="Try a job number, street, unit or property owner name." />
           ) : (
             <EmptyState icon={<Inbox />} {...EMPTY[tab]}
               action={tab === "all" || tab === "unassigned" ? <ButtonLink href="/jobs/new"><Plus aria-hidden />New job</ButtonLink> : undefined} />

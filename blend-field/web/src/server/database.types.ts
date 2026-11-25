@@ -23,6 +23,13 @@ export type Database = {
           }
         },"public": {
           Tables: {
+            "people_register": {
+              Row: { id: string; org_id: string; site_id: string; kind: "tenant" | "trade"; first_name: string;
+                surname: string; company: string; email: string; phone: string; trade: string; updated_at: string };
+              Insert: Omit<Database["public"]["Tables"]["people_register"]["Row"], "id" | "updated_at"> & { updated_at?: string };
+              Update: Partial<Database["public"]["Tables"]["people_register"]["Insert"]>;
+              Relationships: [];
+            };
             "tenant_profiles": {
               Row: { user_id: string; first_name: string; surname: string; company: string; phone: string; updated_at: string };
               Insert: { user_id: string; first_name: string; surname: string; company: string; phone: string; updated_at?: string };

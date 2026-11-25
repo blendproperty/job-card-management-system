@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { PeopleRegister } from "@/components/people-register";
 import { Button, Card, Field, Input, Select, StatusPill } from "@/components/ui";
 import { fmtDayTime, fmtDuration, fmtSlot, isOverdue } from "@/lib/format";
 import { requireOffice, type Actor } from "@/server/auth";
@@ -7,7 +8,7 @@ import { listJobs, listMembers, listSitesForPicker } from "@/server/repo";
 import { workspaceAction } from "../../workspace-actions";
 
 const titles: Record<string, string> = {
-  map: "Field locations", schedule: "Schedule", clients: "Clients and properties", assets: "Asset register",
+  map: "Field locations", schedule: "Schedule", properties: "Properties", tenants: "Tenants", trades: "Trades", assets: "Asset register",
   invoices: "Invoices", reports: "Job reports", settings: "Team and integrations",
 };
 const trades = ["General maintenance", "Plumbing", "Electrical", "Other"];
@@ -59,12 +60,12 @@ async function Schedule({ actor, selected }: { actor: Actor; selected?: string }
   </>;
 }
 
-async function Clients({ actor }: { actor: Actor }) {
+async function Properties({ actor }: { actor: Actor }) {
   const [clients, sites] = await Promise.all([
     actor.db.from("clients").select("id, name, billing_email").eq("org_id", actor.org_id).order("name"),
     listSitesForPicker(actor),
   ]);
-  if (clients.error) throw new Error("Could not load clients.");
+  if (clients.error) throw new Error("Could not load property owners.");
   return <>
     <Card>
       <h2 className="font-semibold">Portfolio</h2>
@@ -72,21 +73,21 @@ async function Clients({ actor }: { actor: Actor }) {
         <p className="font-semibold">{client.name}</p>{client.billing_email && <p>{client.billing_email}</p>}
         <ul>{sites.filter((s) => s.client_id === client.id).map((s) => <li className="mt-1" key={s.id}>{s.label} · {s.address}</li>)}</ul>
       </li>)}</ul>
-      {clients.data.length === 0 && <p>No clients yet.</p>}
+      {clients.data.length === 0 && <p>No property owners yet.</p>}
     </Card>
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
-        <h2 className="font-semibold">Add client</h2>
-        <form action={workspaceAction.bind(null, "clients")} className="mt-3 grid gap-3">
+        <h2 className="font-semibold">Add property owner</h2>
+        <form action={workspaceAction.bind(null, "properties")} className="mt-3 grid gap-3">
           <input type="hidden" name="kind" value="client" />
-          <Field label="Client name" htmlFor="client-name"><Input id="client-name" name="name" maxLength={120} required /></Field>
-          <Button>Add client</Button>
+          <Field label="Property owner name" htmlFor="client-name"><Input id="client-name" name="name" maxLength={120} required /></Field>
+          <Button>Add property owner</Button>
         </form>
       </Card>
       <Card>
         <h2 className="font-semibold">Add property or unit</h2>
-        <form action={workspaceAction.bind(null, "clients")} className="mt-3 grid gap-3">
-          <Field label="Client" htmlFor="client"><Select id="client" name="client" required defaultValue=""><option value="" disabled>Choose a client</option>
+        <form action={workspaceAction.bind(null, "properties")} className="mt-3 grid gap-3">
+          <Field label="Property owner" htmlFor="client"><Select id="client" name="client" required defaultValue=""><option value="" disabled>Choose a property owner</option>
             {clients.data.map((c) => <option value={c.id} key={c.id}>{c.name}</option>)}
           </Select></Field>
           <Field label="Property or unit name" htmlFor="property-name"><Input id="property-name" name="name" maxLength={120} required /></Field>
@@ -223,18 +224,20 @@ async function Settings({ actor }: { actor: Actor }) {
 
 export default async function WorkspaceSection({ params, searchParams }: {
   params: Promise<{ section: string }>;
-  searchParams: Promise<{ saved?: string; error?: string; date?: string }>;
+  searchParams: Promise<{ saved?: string; error?: string; date?: string; page?: string }>;
 }) {
   const actor = await requireOffice();
   const { section } = await params;
   const query = await searchParams;
+  if (section === "clients") redirect("/tenants");
   if (!Object.hasOwn(titles, section)) notFound();
   return <div className="space-y-4">
     <h1 className="text-xl font-bold">{titles[section]}</h1>
-    {query.saved && <p role="status">Saved.</p>}
+    {query.saved && section !== "tenants" && section !== "trades" && <p role="status">Saved.</p>}
     {query.error && <p role="alert" className="text-danger">{query.error}</p>}
     {section === "schedule" && <Schedule actor={actor} selected={query.date} />}
-    {section === "clients" && <Clients actor={actor} />}
+    {section === "properties" && <Properties actor={actor} />}
+    {(section === "tenants" || section === "trades") && <PeopleRegister actor={actor} kind={section === "tenants" ? "tenant" : "trade"} saved={query.saved} page={query.page} />}
     {section === "assets" && <Assets actor={actor} />}
     {section === "invoices" && <Invoices actor={actor} />}
     {section === "reports" && <Reports actor={actor} />}

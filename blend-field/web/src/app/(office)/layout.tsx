@@ -25,7 +25,7 @@ export default async function OfficeLayout({ children }: { children: React.React
           <form action="/jobs" role="search" className="relative max-w-[420px] flex-1">
             <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-subtle" />
             <label htmlFor="q" className="sr-only">Search jobs</label>
-            <input id="q" name="q" placeholder="Search jobs, sites, clients"
+            <input id="q" name="q" placeholder="Search jobs, sites, property owners"
               className="h-10 w-full rounded-sm border border-border-input bg-bg pr-3 pl-8 text-base placeholder:text-text-subtle focus:border-focus focus:ring-2 focus:ring-focus/35 focus:outline-none" />
           </form>
           <div className="ml-auto flex items-center gap-2">

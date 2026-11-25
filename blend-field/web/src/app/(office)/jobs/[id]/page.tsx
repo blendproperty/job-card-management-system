@@ -95,7 +95,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               <Fact icon={<MapPin />} term="Site">
                 {job.site.label}<span className="block text-xs text-text-muted">{job.site.address}</span>
               </Fact>
-              <Fact icon={<UserCheck />} term="Client">{job.client.name}</Fact>
+              <Fact icon={<UserCheck />} term="Property owner">{job.client.name}</Fact>
               {requester && <Fact icon={<UserCheck />} term="Tenant contact">
                 {requester.first_name} {requester.surname} · {requester.company}
                 <span className="block text-xs text-text-muted break-all">{requester.email}</span>
