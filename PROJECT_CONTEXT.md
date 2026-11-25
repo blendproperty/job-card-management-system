@@ -190,3 +190,11 @@ Testing: TypeScript, ESLint, Python MIME rendering, transactional Postgres check
 Commit and push: Runtime 14d3bb3 and job-number migration 0d11cda pushed to codex/blend-field-foundation-20261125. This evidence update follows on the same branch. Merge: none.
 Deployment and configuration: migrations 000011, 000012 and 000013 applied to the dedicated Job Cards database. Backed up Postgres before the release. The Next.js office app and mail worker were rebuilt and deployed. The restricted mail worker passed its database and authenticated SMTP check. Supabase Auth provisioning uses server-only configuration in the office service.
 Live production verification: The Users and Access workflows above passed with synthetic accounts. The formatted #1006 test was accepted by Hostinger and Outlook receipt was still unconfirmed after the final mailbox query. The tenant invitation path was tested locally with a test transport. No invitations were sent in production. Actual tenant release, team onboarding, inbox confirmation, WhatChimp, real-user/handset acceptance and backup restoration remain open.
+
+## 2026-11-25 — Owner-only tenant sign-in invitation
+
+Implementation and configuration: Used Users and Access database actions to register the workspace owner's existing dedicated test tenant alias against Showcase Building · Unit 101 and set that one grant to view-only. Queued one tenant sign-in invitation at the owner's explicit request. Existing sample job #1001 is available to that account. Actual tenant grants and invitations were outside the test.
+
+Testing and live production verification: The active mail worker reported Hostinger SMTP acceptance at 15:06:57 SAST on attempt one. Under the test tenant identity, live Postgres returned one visible property, zero properties eligible for job creation and one visible sample job. Inbox receipt and the owner's interactive sign-in are pending. Operational tenant release, real-user/device acceptance, WhatChimp and recovery gates remain open.
+
+Commit and push: evidence-only checkpoint follows on codex/blend-field-foundation-20261125. Merge: none. Deployment: no runtime release was required.
