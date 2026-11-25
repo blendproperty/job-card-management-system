@@ -1,0 +1,31 @@
+services:
+  api-gw:
+    networks:
+      default:
+        aliases: [envoy, kong]
+      proxy:
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=root_default
+      - traefik.http.routers.blend-job-cards-api.rule=Host(`jobcards-api.srv938083.hstgr.cloud`) && (PathPrefix(`/auth/v1/`) || PathPrefix(`/rest/v1/`) || PathPrefix(`/storage/v1/`) || PathPrefix(`/realtime/v1/`))
+      - traefik.http.routers.blend-job-cards-api.entrypoints=websecure
+      - traefik.http.routers.blend-job-cards-api.tls.certresolver=mytlschallenge
+      - traefik.http.routers.blend-job-cards-api.middlewares=blend-job-cards-api-security
+      - "traefik.http.middlewares.blend-job-cards-api-security.headers.contentSecurityPolicy=sandbox; default-src 'none'; style-src 'unsafe-inline'"
+      - traefik.http.middlewares.blend-job-cards-api-security.headers.contentTypeNosniff=true
+      - traefik.http.services.blend-job-cards-api.loadbalancer.server.port=8000
+  auth:
+    environment:
+      GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: http://jobcards-mail-template/sign-in-code.html
+      GOTRUE_MAILER_SUBJECTS_MAGIC_LINK: Your Blend Field sign-in code
+      GOTRUE_MAILER_OTP_LENGTH: "6"
+      GOTRUE_MAILER_OTP_EXP: "600"
+  jobcards-mail-template:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - /opt/job-cards-app/blend-field/supabase/templates/sign-in-code.html:/usr/share/nginx/html/sign-in-code.html:ro
+networks:
+  proxy:
+    external: true
+    name: root_default
