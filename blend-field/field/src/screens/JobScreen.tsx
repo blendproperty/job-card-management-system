@@ -228,14 +228,14 @@ export function JobScreen({ id, onBack }: { id: string; onBack: () => void }) {
 
             {(onSite || signature) && (
               <View style={{ gap: 8 }} onLayout={(e) => { sectionY.current.signature = e.nativeEvent.layout.y; }}>
-                <Label>Customer signature</Label>
+                <Label>Tenant signature</Label>
                 {signature ? (
                   <Card><T variant="sm">Signed by <T variant="sm" weight="semibold">{signature.signer_name ?? "customer"}</T> at {fmtTime(signature.taken_at)}</T></Card>
                 ) : (
                   <>
-                    <T variant="sm" weight="semibold" nativeID="signer-label">Customer name</T>
+                    <T variant="sm" weight="semibold" nativeID="signer-label">Tenant name</T>
                     <TextInput
-                      accessibilityLabel="Customer name"
+                      accessibilityLabel="Tenant name"
                       value={signer}
                       onChangeText={setSigner}
                       placeholder="Who is signing?"

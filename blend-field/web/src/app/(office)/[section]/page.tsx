@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { DispatchRules } from "@/components/dispatch-rules";
 import { PeopleRegister } from "@/components/people-register";
 import { Button, Card, Field, Input, Select, StatusPill } from "@/components/ui";
 import { fmtDayTime, fmtDuration, fmtSlot, isOverdue } from "@/lib/format";
@@ -8,7 +9,7 @@ import { listJobs, listMembers, listSitesForPicker } from "@/server/repo";
 import { workspaceAction } from "../../workspace-actions";
 
 const titles: Record<string, string> = {
-  map: "Field locations", schedule: "Schedule", properties: "Properties", tenants: "Tenants", trades: "Trades", assets: "Asset register",
+  map: "Field locations", schedule: "Schedule", properties: "Properties", tenants: "Tenants", contractors: "Contractors", dispatch: "Dispatch rules", assets: "Asset register",
   invoices: "Invoices", reports: "Job reports", settings: "Team and integrations",
 };
 const trades = ["General maintenance", "Plumbing", "Electrical", "Other"];
@@ -230,14 +231,16 @@ export default async function WorkspaceSection({ params, searchParams }: {
   const { section } = await params;
   const query = await searchParams;
   if (section === "clients") redirect("/tenants");
+  if (section === "trades") redirect("/contractors");
   if (!Object.hasOwn(titles, section)) notFound();
   return <div className="space-y-4">
     <h1 className="text-xl font-bold">{titles[section]}</h1>
-    {query.saved && section !== "tenants" && section !== "trades" && <p role="status">Saved.</p>}
-    {query.error && <p role="alert" className="text-danger">{query.error}</p>}
+    {query.saved && section !== "tenants" && section !== "contractors" && <p role="status">Saved.</p>}
+    {query.error && <p role="alert" className="text-danger">{section === "dispatch" ? (query.error === "worker" ? "Choose an active contractor with the selected trade." : "Choose a property, trade and contractor.") : query.error}</p>}
+    {section === "dispatch" && <DispatchRules actor={actor} />}
     {section === "schedule" && <Schedule actor={actor} selected={query.date} />}
     {section === "properties" && <Properties actor={actor} />}
-    {(section === "tenants" || section === "trades") && <PeopleRegister actor={actor} kind={section === "tenants" ? "tenant" : "trade"} saved={query.saved} page={query.page} />}
+    {(section === "tenants" || section === "contractors") && <PeopleRegister actor={actor} kind={section === "tenants" ? "tenant" : "trade"} saved={query.saved} page={query.page} />}
     {section === "assets" && <Assets actor={actor} />}
     {section === "invoices" && <Invoices actor={actor} />}
     {section === "reports" && <Reports actor={actor} />}

@@ -2,7 +2,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  
+
   "graphql_public": {
           Tables: {
             [_ in never]: never
@@ -23,6 +23,12 @@ export type Database = {
           }
         },"public": {
           Tables: {
+            "site_dispatch_rules": {
+              Row: { site_id: string; trade: string; member_id: string };
+              Insert: { site_id: string; trade: string; member_id: string };
+              Update: { site_id?: string; trade?: string; member_id?: string };
+              Relationships: [];
+            };
             "people_register": {
               Row: { id: string; org_id: string; site_id: string; kind: "tenant" | "trade"; first_name: string;
                 surname: string; company: string; email: string; phone: string; trade: string; updated_at: string };
@@ -692,7 +698,7 @@ isOneToOne: false
                     "created_at"?: string,"currency"?: string,"id"?: string,"name"?: string,"next_job_number"?: number,"settings"?: NonNullable<Json>,"timezone"?: string,"updated_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"payments": {
                   Row: {
@@ -874,7 +880,7 @@ isOneToOne: false
                     "external_id"?: string,"payload"?: NonNullable<Json>,"processed_at"?: string | null,"provider"?: string,"received_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 }
           }
@@ -886,8 +892,10 @@ isOneToOne: false
               user_id: string; site_id: string; first_name: string; surname: string; company: string;
             }[] };
             "tenant_sites": { Args: Record<string, never>; Returns: { id: string; label: string }[] };
+            "my_workflow_alerts": { Args: { p_audience: string }; Returns: { event_id: string; job_id: string; number: number; message: string; created_at: string }[] };
+            "set_site_dispatch_rule": { Args: { p_site: string; p_trade: string; p_member: string | null }; Returns: undefined };
             "tenant_requests": { Args: Record<string, never>; Returns: { number: number; title: string; status: string; logged_at: string }[] };
-            "submit_tenant_request": { Args: { p_site: string; p_trade: string; p_title: string; p_description: string }; Returns: number };
+            "submit_tenant_request": { Args: { p_site: string; p_trade: string; p_title: string; p_description: string; p_manual?: boolean }; Returns: number };
             "review_job": { Args: { p_job: string; p_decision: string }; Returns: undefined };
             "assign_job":
 { Args: { "p_job": string,"p_members": (string)[] }; Returns: {
@@ -1095,7 +1103,7 @@ export type CompositeTypes<
 export const Constants = {
   "graphql_public": {
           Enums: {
-            
+
           }
         },"public": {
           Enums: {

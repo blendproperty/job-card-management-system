@@ -7,7 +7,7 @@ import { SignInForm } from "./sign-in-form";
 export const metadata = { title: "Sign in" };
 
 const REASON: Record<string, string> = {
-  field: "That account is for the field app. Sign in to the office with an office account.",
+  field: "That account is for the contractor portal. Sign in to the office with an office account.",
 };
 
 /** S01 Sign in: emailed one-time code. */
@@ -31,7 +31,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </p>
         <h1 className="mt-4 text-xl font-bold">Sign in</h1>
         {reason && REASON[reason] && <p role="alert" className="mt-3 rounded-sm bg-warning-soft p-3 text-warning">{REASON[reason]}</p>}
-        {reason === "field" && <a href="https://jobcards-field.srv938083.hstgr.cloud/" className="mt-3 block font-semibold text-accent-text underline">Open the trade workspace</a>}
+        {reason === "field" && <a href="https://jobcards-field.srv938083.hstgr.cloud/" className="mt-3 block font-semibold text-accent-text underline">Open the contractor portal</a>}
         <SignInForm />
         <Link href="/role-views" className="mt-4 block text-sm text-accent-text underline">Preview the three role views</Link>
       </div>

@@ -18,7 +18,7 @@ const contact = z.object({
 
 export async function saveRegister(kind: "tenant" | "trade", form: FormData) {
   const actor = await requireOffice();
-  const path = kind === "trade" ? "/trades" : "/tenants";
+  const path = kind === "trade" ? "/contractors" : "/tenants";
   const fail = (message: string) => redirect(path + "?error=" + encodeURIComponent(message));
   if (kind !== "tenant" && kind !== "trade") return fail("Choose a register.");
   const site = z.uuid().safeParse(form.get("site"));

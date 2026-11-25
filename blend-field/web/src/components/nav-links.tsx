@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Box, Building2, CalendarDays, ClipboardList, Map, Receipt, Settings, UsersRound, Wrench } from "lucide-react";
+import { BarChart3, Box, Building2, CalendarDays, GitBranch, ClipboardList, Map, Receipt, Settings, UsersRound, Wrench } from "lucide-react";
 
 const ITEMS = [
   { href: "/role-views", label: "Role views", Icon: UsersRound },
@@ -9,7 +9,8 @@ const ITEMS = [
   { href: "/jobs", label: "Jobs", Icon: ClipboardList },
   { href: "/schedule", label: "Schedule", Icon: CalendarDays },
   { href: "/tenants", label: "Tenants", Icon: UsersRound },
-  { href: "/trades", label: "Trades", Icon: Wrench },
+  { href: "/contractors", label: "Contractors", Icon: Wrench },
+  { href: "/dispatch", label: "Dispatch rules", Icon: GitBranch },
   { href: "/properties", label: "Properties", Icon: Building2 },
   { href: "/assets", label: "Assets", Icon: Box },
   { href: "/invoices", label: "Invoices", Icon: Receipt },

@@ -865,6 +865,7 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
+      my_workflow_alerts: { Args: { p_audience: string }; Returns: { event_id: string; job_id: string; number: number; message: string; created_at: string }[] };
             "assign_job":
 { Args: { "p_job": string,"p_members": (string)[] }; Returns: {
               "approval": Database["public"]['Enums']["approval_state"],"trade": string | null,

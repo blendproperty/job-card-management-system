@@ -4,7 +4,7 @@ import { ButtonLink, Card } from "@/components/ui";
 
 const roles = {
   tenant: { label: "Tenant", title: "My maintenance", subtitle: "Log and track requests for your property.", open: "/requests", cta: "Open tenant portal" },
-  trade: { label: "Trade", title: "My field jobs", subtitle: "See your allocated work and capture updates on site.", open: "https://jobcards-field.srv938083.hstgr.cloud/", cta: "Open trade app" },
+  trade: { label: "Contractor", title: "My field jobs", subtitle: "See your allocated work and capture updates on site.", open: "https://jobcards-field.srv938083.hstgr.cloud/", cta: "Open contractor portal" },
   manager: { label: "PM / FM", title: "Job management", subtitle: "Review tenant requests, allocate work and approve closure.", open: "/jobs", cta: "Open manager workspace" },
 } as const;
 
@@ -47,7 +47,7 @@ export default async function RoleViews({ searchParams }: { searchParams: Promis
           <h3 className="font-semibold">Assigned to me</h3>
           <p>Repair the leaking geyser · Showcase Building, Unit 101</p>
           <p className="text-sm text-text-muted">Field progress: En route → Arrived → In progress → Submit work</p>
-          <p className="text-sm">Work photos, customer signature, time and worker sign-off are captured in the job.</p>
+          <p className="text-sm">Work photos, tenant signature, time and contractor sign-off are captured in the job.</p>
         </div>}
         {key === "manager" && <div className="space-y-3 rounded-md bg-surface p-4">
           <h3 className="font-semibold">Approvals and closure</h3>

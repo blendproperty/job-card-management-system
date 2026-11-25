@@ -62,6 +62,10 @@ export async function myJobs(): Promise<FieldJob[]> {
   });
 }
 
+export async function myNotifications() {
+  return cached("notifications", async () => (await run(supabase.rpc("my_workflow_alerts", { p_audience: "trade" }))) ?? []);
+}
+
 export async function myJob(id: string): Promise<FieldJob> {
   try {
     return await cached("job:" + id, async () => {

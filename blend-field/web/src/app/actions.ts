@@ -129,6 +129,7 @@ export async function submitTenantRequest(form: FormData) {
     p_trade: String(form.get("trade") ?? ""),
     p_title: String(form.get("title") ?? ""),
     p_description: String(form.get("description") ?? ""),
+    p_manual: form.get("manual_review") === "on",
   });
   if (result.error) redirect("/requests?new=1&error=request");
   revalidatePath("/jobs");

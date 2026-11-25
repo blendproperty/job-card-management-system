@@ -48,7 +48,7 @@ export function SignaturePad({ onChange, disabled }: { onChange: (svg: string | 
   return (
     <View style={{ gap: 6 }}>
       <View
-        accessibilityLabel="Customer signature. Draw with your finger."
+        accessibilityLabel="Tenant signature. Draw with your finger."
         onLayout={onLayout}
         style={st.pad}
         {...handlers}

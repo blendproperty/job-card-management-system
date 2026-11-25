@@ -39,6 +39,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const mayAssign = !job.locked_at && job.approval !== "awaiting" && job.approval !== "rejected";
   const overdue = isOverdue(job.stage, job.scheduled_end);
   const live = !job.locked_at && job.stage !== "unassigned";
+  const dispatchReview = job.events.find((event) => (event.payload as { dispatch?: string })?.dispatch === "review");
+  const reviewReason = (dispatchReview?.payload as { reason?: string } | undefined)?.reason;
   const followUps = job.events
     .filter((e) => (e.payload as { follow_up_requested?: boolean } | null)?.follow_up_requested)
     .map((e) => ({ member_name: e.member_name, note: (e.payload as { note?: string | null }).note ?? null, at: e.occurred_at }));
@@ -143,7 +145,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
           </Card>
 
           <Card>
-            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold"><PenLine aria-hidden className="size-4" />Customer signature</h2>
+            <h2 className="mb-3 flex items-center gap-2 text-base font-semibold"><PenLine aria-hidden className="size-4" />Tenant signature</h2>
             {!signature ? (
               <p className="text-text-muted">Not signed yet.</p>
             ) : (
@@ -165,6 +167,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <Card className="flex flex-col gap-3">
               <h2 className="font-semibold">Review and closure</h2>
               {job.trade && <p className="capitalize">{job.trade}</p>}
+              {job.approval === "awaiting" && reviewReason && <p>Manual allocation · {reviewReason}</p>}
               {job.approval === "awaiting" && <ReviewForm jobId={job.id} phase="dispatch" />}
               {closure && <p>Closed by {closure.member_name ?? "an administrator"} · {fmtDayTime(closure.occurred_at)}</p>}
               {work?.worker_signed && (
@@ -190,10 +193,13 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             <h2 className="mb-3 text-base font-semibold">Timeline</h2>
             <ol className="flex flex-col gap-3">
               <TimelineRow at={job.created_at} text="Job created" />
-              {job.events.filter((e) => e.kind !== "note" || (e.payload as { follow_up_requested?: boolean } | null)?.follow_up_requested).map((e) => {
-                const p = (e.payload ?? {}) as { resolution_name?: string; follow_up_requested?: boolean };
+              {job.events.filter((e) => e.kind !== "note" || e.id === dispatchReview?.id || (e.payload as { follow_up_requested?: boolean } | null)?.follow_up_requested).map((e) => {
+                const p = (e.payload ?? {}) as { resolution_name?: string; follow_up_requested?: boolean; dispatch?: string; review?: string };
                 const who = e.member_name ?? "Someone";
-                const text = e.kind === "assign" ? `${who} assigned the job`
+                const text = p.dispatch === "automatic" ? "Contractor assigned automatically"
+                  : p.dispatch === "review" ? "Sent to property team for manual allocation"
+                  : e.kind === "assign" ? `${who} assigned the job`
+                  : p.review ? `${who} recorded: ${p.review}`
                   : p.follow_up_requested ? `${who} asked for a follow-up visit`
                   : e.to_stage === "completed" && p.resolution_name ? `${who} finished the job: ${p.resolution_name}`
                   : `${who} marked ${STAGE_LABEL[e.to_stage!]}`;

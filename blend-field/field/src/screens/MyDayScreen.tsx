@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Platform, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { myJobs } from "../api";
+import { myJobs, myNotifications } from "../api";
 import { supabase } from "../supabase";
 import { flush, onPending, pendingCount, withPending } from "../outbox";
 import { Banner, Button, Card, color, OutcomeBadge, StatusPill, T } from "../ui";
@@ -13,6 +13,7 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
   me: { id: string; org_id: string; display_name: string }; onOpen: (id: string) => void; onSignOut: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const [notifications, setNotifications] = useState<Awaited<ReturnType<typeof myNotifications>>>([]);
   const [jobs, setJobs] = useState<FieldJob[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,7 +27,8 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
     setRefreshing(true);
     const result = await flush();
     try {
-      const list = await myJobs();
+      const [list, alerts] = await Promise.all([myJobs(), myNotifications().catch(() => null)]);
+      if (alerts) setNotifications(alerts);
       setJobs(list.map(withPending));
       setError(result.rejected.length ? result.rejected.map((x) => x.reason).join(" ") : null);
     } catch (e) {
@@ -88,6 +90,14 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
             <T muted variant="sm">The office will send new jobs here.</T>
           </Card>
         )}
+        {notifications.length > 0 && <Card>
+          <T weight="semibold" accessibilityRole="header">Notifications</T>
+          {notifications.map((alert) =>
+            <Pressable key={alert.event_id} accessibilityRole="button" onPress={() => onOpen(alert.job_id)}>
+              <T style={{ color: color["accent-text"], paddingVertical: 6 }}>#{alert.number} · {alert.message}</T>
+            </Pressable>
+          )}
+        </Card>}
         {open.map((j) => <JobCard key={j.id} job={j} next={j.id === nextId} onPress={() => onOpen(j.id)} />)}
         {done.length > 0 && <T variant="xs" weight="semibold" muted style={{ marginTop: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Done</T>}
         {done.map((j) => <JobCard key={j.id} job={j} onPress={() => onOpen(j.id)} />)}

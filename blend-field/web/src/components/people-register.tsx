@@ -31,8 +31,8 @@ export async function PeopleRegister({ actor, kind, saved, page }: { actor: Acto
   ]);
   if (contacts.error) throw new Error("Could not load the register.");
   const trade = kind === "trade";
-  const path = trade ? "/trades" : "/tenants";
-  const person = trade ? "trade contact" : "tenant";
+  const path = trade ? "/contractors" : "/tenants";
+  const person = trade ? "contractor" : "tenant";
   const siteLabels = new Map(sites.map((site) => [site.id, site.label]));
   const columns = ["Property or unit", ...fields.map((field) => field.label), ...(trade ? ["Trade"] : [])];
   return <>
@@ -40,7 +40,7 @@ export async function PeopleRegister({ actor, kind, saved, page }: { actor: Acto
     {!sites.length && <p>Add a property or unit in Properties to start registering contacts.</p>}
     <div className="grid gap-4 xl:grid-cols-2">
       <Card>
-        <h2 className="font-semibold">Add {trade ? "a trade contact" : "a tenant"}</h2>
+        <h2 className="font-semibold">Add {trade ? "a contractor" : "a tenant"}</h2>
         <form action={saveRegister.bind(null, kind)} className="mt-3 grid gap-3 sm:grid-cols-2">
           <SitePicker id="contact-site" sites={sites} />
           {fields.map((field) => <Field key={field.name} label={field.label} htmlFor={field.name}>
@@ -54,7 +54,7 @@ export async function PeopleRegister({ actor, kind, saved, page }: { actor: Acto
         </form>
       </Card>
       <Card>
-        <h2 className="font-semibold">Upload {trade ? "trade contacts" : "tenants"} from CSV</h2>
+        <h2 className="font-semibold">Upload {trade ? "contractors" : "tenants"} from CSV</h2>
         <p className="mt-2 text-text-muted">Use one file per property or unit, with up to 500 records. An existing contact with the same email{trade ? " and trade" : ""} at that property is updated.</p>
         <p className="mt-2 break-words font-mono text-sm">{fields.map((field) => field.name).join(",")}{trade && ",trade"}</p>
         {trade && <p className="mt-2 text-sm">Trade values: General maintenance, Plumbing, Electrical or Other.</p>}
@@ -66,8 +66,8 @@ export async function PeopleRegister({ actor, kind, saved, page }: { actor: Acto
       </Card>
     </div>
     <Card>
-      <h2 className="font-semibold">Registered {trade ? "trade contacts" : "tenants"}</h2>
-      {contacts.data.length === 0 ? <p className="mt-2 text-text-muted">No {trade ? "trade contacts" : "tenants"} registered yet.</p> : <>
+      <h2 className="font-semibold">Registered {trade ? "contractors" : "tenants"}</h2>
+      {contacts.data.length === 0 ? <p className="mt-2 text-text-muted">No {trade ? "contractors" : "tenants"} registered yet.</p> : <>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead><tr className="border-b border-border">{columns.map((column) => <th scope="col" key={column} className="px-2 py-2">{column}</th>)}</tr></thead>

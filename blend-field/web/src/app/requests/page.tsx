@@ -13,12 +13,12 @@ export default async function RequestsPage({ searchParams }: {
   const db = await supabaseServer();
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login");
-  const [sites, requests, contact, state] = await Promise.all([
+  const [sites, requests, contact, alerts, state] = await Promise.all([
     db.rpc("tenant_sites"), db.rpc("tenant_requests"),
     db.from("tenant_profiles").select("first_name,surname,company,phone").eq("user_id", user.id).maybeSingle(),
-    searchParams,
+    db.rpc("my_workflow_alerts", { p_audience: "tenant" }), searchParams,
   ]);
-  if (sites.error || requests.error || contact.error) throw new Error("Could not load the tenant portal.");
+  if (sites.error || requests.error || contact.error || alerts.error) throw new Error("Could not load the tenant portal.");
   const profile = contact.data;
   const showProfile = sites.data.length > 0 && (!profile || state.profile === "1");
   const entries = requests.data;
@@ -36,7 +36,7 @@ export default async function RequestsPage({ searchParams }: {
           <form action={signOutAction}><Button type="submit" variant="secondary">Sign out</Button></form>
         </div>
       </header>
-      {state.submitted && <p role="status">Request #{state.submitted} submitted for approval.</p>}
+      {state.submitted && <p role="status">Request #{state.submitted} submitted.</p>}
       {state.saved && <p role="status">Contact details saved.</p>}
       {state.error && (
         <p role="alert" className="text-danger">
@@ -90,11 +90,22 @@ export default async function RequestsPage({ searchParams }: {
             </Field>
             <Field label="Title" htmlFor="title" required><Input id="title" name="title" required minLength={3} maxLength={120} /></Field>
             <Field label="Details" htmlFor="description" required><Textarea id="description" name="description" required maxLength={2000} /></Field>
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="manual_review" className="mt-1" />
+              This request needs special access, a particular qualification or another requirement for the property team to review.
+            </label>
             <Button type="submit">Submit request</Button>
           </form>
         </Card>
       ) : !sites.data.length ? <Card>Ask the property team to grant you access to your property.</Card> :
         <Link href="/requests?profile=1" className="text-accent-text underline">Edit my contact details</Link>}
+      {alerts.data.length > 0 && <Card>
+        <h2 className="font-semibold">Notifications</h2>
+        <ul className="divide-y divide-border">{alerts.data.map((alert) => <li key={alert.event_id} className="py-2">
+          <p>#{alert.number} · {alert.message}</p>
+          <p className="text-xs text-text-muted">{fmtDayTime(alert.created_at)}</p>
+        </li>)}</ul>
+      </Card>}
       <Card>
         <h2 className="font-semibold">My requests</h2>
         {entries.length ? <ul className="divide-y divide-border">{entries.map((request) => (
