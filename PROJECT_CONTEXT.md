@@ -88,3 +88,11 @@ Implementation: Added tenant dashboard and new-request views. Name, surname, com
 Testing: Office TypeScript and lint passed. Local PostgreSQL checks verified profile requirements, self-only writes, verified email capture, stable job contact snapshots, property-scoped manager selection and exclusion of private contact data from other tenants and the trade role.
 
 Commit and push: implementation follows on the Job Cards development branch. Merge: none. Deployment and live verification: pending this checkpoint. Existing handover, account delivery, WhatChimp, field handset, operational data, recovery, native app and provider gates remain open.
+
+## 2026-11-25 — Tenant contacts and role views verified live
+
+Implementation: The tenant profile, tenant dashboard, office contact selector, private contact snapshot and read-only role views from the previous entry are live. Existing jobs retain their original records. Showcase job #1002 contains synthetic requester details for demonstrating the manager's new contact panel.
+
+Testing: Local transactional checks and office TypeScript and lint passed. The VPS Next.js production image built successfully. Mobile-sized live browser checks opened all three public sample previews, saved a tenant profile, confirmed login email and single-property prefill, submitted a request, and saw Awaiting approval on the tenant dashboard. The facility manager opened job #1002, saw the five contact fields, and could select the same tenant after choosing their property in New job.
+
+Commit and push: Runtime 8c87fdc pushed to codex/blend-field-foundation-20261125 and deployed to the dedicated VPS. Merge: none. Deployment and configuration: applied migration 000006 after taking a database dump. Test grants and temporary session files were removed. Trade runtime continues on its existing dedicated route. Live production verification: verified with synthetic accounts. Real tenant onboarding and delivery of role-alias codes, handset UAT, WhatChimp, approved operational data, backup restoration and original rollout gates remain open. No provider settings or STOR24 resources were changed.
