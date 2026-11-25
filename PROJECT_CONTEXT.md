@@ -162,3 +162,11 @@ Commit and push: evidence-only update follows on codex/blend-field-foundation-20
 Live production verification: The workspace owner confirmed receipt and supplied an Outlook screenshot showing the opened Blend Job Cards #1005 test email and its tenant portal link. Combined with the existing Hostinger and gateway trace, this verifies end-to-end delivery for this one test. The screenshot does not establish the inbox arrival time or the reason earlier Outlook searches returned no match. The receipt resolves the #1005 inbox verification item in the previous entries. Demo alias receipt, operational recipients, WhatChimp, real-user and device acceptance, and backup restoration remain open.
 
 Implementation and testing: Evidence update only. Commit and push: this checkpoint follows on codex/blend-field-foundation-20261125. Merge: none. Deployment and configuration: no change. Hostinger remains the active sender.
+
+## 2026-11-25 — Job summary email layout
+
+Implementation: Added a branded HTML job notification with a job-details table, a role-appropriate portal button and a plain-text alternative. It shows the job reference, title, property/unit label, trade, current status and appointment in SAST. The email uses the existing recipient consent and access checks. The job description, contact details and evidence are available in the authenticated app.
+
+Testing: Local transactional Postgres checks verified the job summary, appointment formatting, worker-only execution and redaction when a delivery is skipped. Mime rendering checks verified both alternatives, safe escaping of job text, role-specific links and unscheduled jobs.
+
+Commit and push: implementation follows on codex/blend-field-foundation-20261125. Merge: none. Deployment and live production verification: pending. The established Hostinger sender remains in place. Other recipient, provider, staff and recovery gates remain open.
