@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Blend Field",
+    "slug": "blend-field",
+    "scheme": "blendfield",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#082121",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Blend Field uses the camera to take before and after photos of your work.",
+          "photosPermission": "Blend Field lets you attach photos of your work from your library."
+        }
+      ]
+    ]
+  }
+}
