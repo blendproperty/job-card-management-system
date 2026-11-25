@@ -48,9 +48,9 @@ export async function signOutAction() {
 export type FormState = { error?: string; fields?: Record<string, string> } | undefined;
 
 const createSchema = z.object({
-  title: z.string({ required_error: "Give the job a short title." }).trim()
+  title: z.string({ error: "Give the job a short title." }).trim()
     .min(3, "Give the job a short title (3+ characters).").max(120, "Keep the title under 120 characters."),
-  site_id: z.string({ required_error: "Pick a site." }).uuid("Pick a site."),
+  site_id: z.string({ error: "Pick a site." }).uuid("Pick a site."),
   description: z.string().trim().max(2000).optional(),
   start: z.string().optional(),
   end: z.string().optional(),
