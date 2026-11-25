@@ -117,6 +117,7 @@ export interface CreateJobInput {
   scheduled_end?: string | null;
   estimate_min?: number | null;
   assignee_id?: string | null;
+  trade: string;
 }
 
 export async function createJob(actor: Actor, input: CreateJobInput): Promise<Job> {
@@ -138,11 +139,13 @@ export async function createJob(actor: Actor, input: CreateJobInput): Promise<Jo
       scheduled_end: input.scheduled_end ?? null,
       estimate_min: input.estimate_min ?? null,
       created_by: actor.id,
+      trade: input.trade,
+      approval: "awaiting",
+      preferred_worker: input.assignee_id ?? null,
     })
     .select()
     .single();
   if (error) fail(error);
-  if (input.assignee_id) await assignJob(actor, job.id, [input.assignee_id]);
   return job;
 }
 

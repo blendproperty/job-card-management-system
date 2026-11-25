@@ -34,7 +34,8 @@ export async function verifyCodeAction(_prev: SignInState, form: FormData): Prom
   if (error) {
     return { step: "code", email: email.data, error: error.status === 429 ? "Too many tries. Wait a minute." : "That code didn't work. Check it, or send a new one." };
   }
-  redirect("/jobs");
+  const { data: sites } = await db.rpc("tenant_sites");
+  redirect(sites?.length ? "/requests" : "/jobs");
 }
 
 export async function signOutAction() {
@@ -50,6 +51,7 @@ export type FormState = { error?: string; fields?: Record<string, string> } | un
 const createSchema = z.object({
   title: z.string({ error: "Give the job a short title." }).trim()
     .min(3, "Give the job a short title (3+ characters).").max(120, "Keep the title under 120 characters."),
+  trade: z.enum(["general maintenance", "plumbing", "electrical", "other"]),
   site_id: z.string({ error: "Pick a site." }).uuid("Pick a site."),
   description: z.string().trim().max(2000).optional(),
   start: z.string().optional(),
@@ -76,6 +78,7 @@ export async function createJobAction(_prev: FormState, form: FormData): Promise
       scheduled_end: localInputToIso(d.end),
       estimate_min: d.estimate_min ?? null,
       assignee_id: d.assignee_id ?? null,
+      trade: d.trade,
     });
     id = job.id;
   } catch (e) {
@@ -102,4 +105,30 @@ export async function assignJobAction(_prev: FormState, form: FormData): Promise
   revalidatePath(`/jobs/${jobId.data}`);
   revalidatePath("/jobs");
   return undefined;
+}
+
+export async function reviewJobAction(_prev: FormState, form: FormData): Promise<FormState> {
+  const me = await requireOffice();
+  const id = z.uuid().safeParse(form.get("job_id"));
+  const decision = z.enum(["approve", "reject", "close"]).safeParse(form.get("decision"));
+  if (!id.success || !decision.success) return { error: "Choose a valid review action." };
+  const { error } = await me.db.rpc("review_job", { p_job: id.data, p_decision: decision.data });
+  if (error) return { error: error.code === "P0001" ? error.message : "Could not review this job." };
+  revalidatePath("/jobs");
+  revalidatePath(`/jobs/${id.data}`);
+}
+
+export async function submitTenantRequest(form: FormData) {
+  const db = await supabaseServer();
+  const { data: { user } } = await db.auth.getUser();
+  if (!user) redirect("/login");
+  const result = await db.rpc("submit_tenant_request", {
+    p_site: String(form.get("site") ?? ""),
+    p_trade: String(form.get("trade") ?? ""),
+    p_title: String(form.get("title") ?? ""),
+    p_description: String(form.get("description") ?? ""),
+  });
+  if (result.error) redirect("/requests?error=1");
+  revalidatePath("/jobs");
+  redirect(`/requests?submitted=${result.data}`);
 }

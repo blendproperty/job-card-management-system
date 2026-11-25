@@ -32,6 +32,15 @@ export function NewJobForm({ sites, people, defaultSite }: Props) {
             {sites.map((s) => <option key={s.id} value={s.id}>{s.label} · {s.client}</option>)}
           </Select>
         </Field>
+        <Field label="Trade" htmlFor="trade" required>
+          <Select id="trade" name="trade" required defaultValue={f.trade ?? ""}>
+            <option value="" disabled>Choose a trade</option>
+            <option value="general maintenance">General maintenance</option>
+            <option value="plumbing">Plumbing</option>
+            <option value="electrical">Electrical</option>
+            <option value="other">Other</option>
+          </Select>
+        </Field>
         <Field label="Details" htmlFor="description">
           <Textarea id="description" name="description" maxLength={2000} defaultValue={f.description} placeholder="What's wrong, anything the engineer should bring" />
         </Field>
@@ -46,9 +55,9 @@ export function NewJobForm({ sites, people, defaultSite }: Props) {
         <Field label="Estimate (minutes)" htmlFor="estimate_min">
           <Input id="estimate_min" name="estimate_min" type="number" inputMode="numeric" min={1} max={1440} defaultValue={f.estimate_min} className="max-w-40" />
         </Field>
-        <Field label="Assign to" htmlFor="assignee_id" help="Leave empty to keep it in Unassigned.">
+        <Field label="Preferred worker" htmlFor="assignee_id" help="Leave blank to allocate by trade when approved.">
           <Select id="assignee_id" name="assignee_id" defaultValue={f.assignee_id ?? ""} aria-describedby="assignee_id-help">
-            <option value="">Nobody yet</option>
+            <option value="">Allocate by trade on approval</option>
             {people.map((p) => (
               <option key={p.id} value={p.id}>{p.name}{p.skills.length ? ` · ${p.skills.join(", ")}` : ""}</option>
             ))}
@@ -58,7 +67,7 @@ export function NewJobForm({ sites, people, defaultSite }: Props) {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={pending} aria-busy={pending}>
-          {pending && <Loader2 aria-hidden className="animate-spin" />}Create job
+          {pending && <Loader2 aria-hidden className="animate-spin" />}Submit for approval
         </Button>
         <ButtonLink href="/jobs" variant="secondary">Cancel</ButtonLink>
       </div>

@@ -8,6 +8,7 @@ import { STAGE_LABEL } from "@/server/stages";
 import type { JobDetail } from "@/server/types";
 import { fmtDayTime, fmtDuration, fmtSlot, fmtTime, isOverdue } from "@/lib/format";
 import { AssignForm } from "./assign-form";
+import { ReviewForm } from "./review-form";
 import { AutoRefresh } from "./auto-refresh";
 
 export const metadata = { title: "Job" };
@@ -27,6 +28,8 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const people = job.locked_at ? [] : await listMembers(me, { field: true });
   const photos = job.attachments.filter((a) => a.kind === "photo");
   const signature = job.attachments.find((a) => a.kind === "signature");
+  const closure = job.events.find((event) => (event.payload as { review?: string } | null)?.review === "close");
+  const mayAssign = !job.locked_at && job.approval !== "awaiting" && job.approval !== "rejected";
   const overdue = isOverdue(job.stage, job.scheduled_end);
   const live = !job.locked_at && job.stage !== "unassigned";
   const followUps = job.events
@@ -52,6 +55,9 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <StatusPill stage={job.stage} />
+          {job.approval === "awaiting" && <span>Awaiting approval</span>}
+          {job.approval === "rejected" && <span>Request declined</span>}
+          {closure && <span>Closed</span>}
           {job.resolution && <OutcomeBadge name={job.resolution.name} successful={job.resolution.successful} />}
           {overdue && <StatusPill stage="overdue" />}
           {job.locked_at && (
@@ -84,6 +90,14 @@ export default async function JobPage({ params, searchParams }: { params: Promis
               </Fact>
               <Fact icon={<UserCheck />} term="Client">{job.client.name}</Fact>
               <Fact icon={<Clock />} term="Slot">{fmtSlot(job.scheduled_start, job.scheduled_end)}</Fact>
+              <Fact icon={<Clock />} term="Logged">{fmtDayTime(job.created_at)}</Fact>
+              {job.started_at && <Fact icon={<Clock />} term="Work started">{fmtDayTime(job.started_at)}</Fact>}
+              {job.completed_at && <Fact icon={<Clock />} term="Field completion">
+                {fmtDayTime(job.completed_at)}
+                <span className="block text-xs text-text-muted">
+                  Elapsed since request {fmtDuration(Math.max(0, Math.floor((Date.parse(job.completed_at) - Date.parse(job.created_at)) / 1000)))}
+                </span>
+              </Fact>}
               <Fact icon={<Clock />} term="Time on site">
                 {job.on_site_seconds !== null ? fmtDuration(job.on_site_seconds) : job.arrived_at ? `Since ${fmtTime(job.arrived_at)}` : "Not arrived yet"}
                 {job.estimate_min && <span className="block text-xs text-text-muted">Estimate {fmtDuration(job.estimate_min * 60)}</span>}
@@ -109,7 +123,7 @@ export default async function JobPage({ params, searchParams }: { params: Promis
                     ) : (
                       <div className="grid aspect-square place-items-center bg-surface-2 p-2 text-center text-xs text-text-muted">Uploading from the phone…</div>
                     )}
-                    <p className="px-2 py-1 text-xs text-text-muted capitalize">{p.stage} · {fmtTime(p.taken_at)}</p>
+                    <p className="px-2 py-1 text-xs text-text-muted capitalize">{p.stage} · {fmtDayTime(p.taken_at)}{p.uploaded_at ? ` · Uploaded ${fmtDayTime(p.uploaded_at)}` : ""}</p>
                   </li>
                 ))}
               </ul>
@@ -135,12 +149,21 @@ export default async function JobPage({ params, searchParams }: { params: Promis
         </div>
 
         <aside className="flex flex-col gap-5">
+          {(job.trade || closure || (me.role === "admin" && job.stage === "completed")) && (
+            <Card className="flex flex-col gap-3">
+              <h2 className="font-semibold">Review and closure</h2>
+              {job.trade && <p className="capitalize">{job.trade}</p>}
+              {job.approval === "awaiting" && <ReviewForm jobId={job.id} phase="dispatch" />}
+              {closure && <p>Closed by {closure.member_name ?? "an administrator"} · {fmtDayTime(closure.occurred_at)}</p>}
+              {!closure && me.role === "admin" && job.stage === "completed" && <ReviewForm jobId={job.id} phase="closure" />}
+            </Card>
+          )}
           <Card>
             <h2 className="mb-3 flex items-center gap-2 text-base font-semibold"><UserPlus aria-hidden className="size-4" />Assigned</h2>
             {job.assignees.length > 0 && (
               <ul className="mb-3 flex flex-col gap-2">{job.assignees.map((a) => <li key={a.id}><EngineerChip name={a.display_name} /></li>)}</ul>
             )}
-            {!job.locked_at ? (
+            {mayAssign ? (
               <AssignForm jobId={job.id} current={job.assignees[0]?.id} people={people.map((p) => ({ id: p.id, name: p.display_name }))} />
             ) : job.assignees.length === 0 ? (
               <p className="text-text-muted">Nobody.</p>
