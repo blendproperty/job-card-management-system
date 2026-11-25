@@ -865,6 +865,8 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
+      workflow_email_enabled: { Args: { p_audience: string }; Returns: boolean };
+      set_workflow_email: { Args: { p_audience: string; p_enabled: boolean }; Returns: boolean };
       my_workflow_alerts: { Args: { p_audience: string }; Returns: { event_id: string; job_id: string; number: number; message: string; created_at: string }[] };
             "assign_job":
 { Args: { "p_job": string,"p_members": (string)[] }; Returns: {

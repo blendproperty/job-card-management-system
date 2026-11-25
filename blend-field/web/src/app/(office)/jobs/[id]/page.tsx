@@ -27,7 +27,14 @@ export default async function JobPage({ params, searchParams }: { params: Promis
   const { created } = await searchParams;
   const { data: requester, error: requesterError } = await me.db.from("job_requester_contacts").select("*").eq("job_id", id).maybeSingle();
   if (requesterError) throw new Error("Could not load the requester contact.");
-  const people = job.locked_at ? [] : await listMembers(me, { field: true });
+  const [people, deliveries] = await Promise.all([
+    job.locked_at ? [] : listMembers(me, { field: true }),
+    me.db.rpc("office_workflow_emails", { p_job: id }),
+  ]);
+  const mailStatus: Record<string, string> = {
+    queued: "Queued", sending: "Sending", accepted: "Accepted by mail server",
+    failed: "Failed", uncertain: "Delivery uncertain", skipped: "Skipped",
+  };
   const photos = job.attachments.filter((a) => a.kind === "photo");
   const signature = job.attachments.find((a) => a.kind === "signature");
   const closure = job.events.find((event) => (event.payload as { review?: string } | null)?.review === "close");
@@ -189,6 +196,17 @@ export default async function JobPage({ params, searchParams }: { params: Promis
             ) : null}
           </Card>
 
+          <Card>
+            <h2 className="mb-3 text-base font-semibold">Job email delivery</h2>
+            {deliveries.error ? <p className="text-sm text-danger">Email status is temporarily unavailable.</p> :
+              !deliveries.data.length ? <p className="text-sm text-text-muted">No email notifications queued for this job.</p> :
+                <ul className="divide-y divide-border">{deliveries.data.map((delivery) => <li key={delivery.id} className="py-2 text-sm">
+                  <p>{delivery.audience === "tenant" ? "Tenant" : "Contractor"} · {delivery.message}</p>
+                  <p className="text-text-muted">{mailStatus[delivery.state] ?? delivery.state} · {delivery.attempts} {delivery.attempts === 1 ? "attempt" : "attempts"}</p>
+                  {delivery.detail && delivery.state !== "accepted" && <p className="text-xs text-text-muted">{delivery.detail}</p>}
+                  <time className="text-xs text-text-muted" dateTime={delivery.updated_at}>{fmtDayTime(delivery.updated_at)}</time>
+                </li>)}</ul>}
+          </Card>
           <Card>
             <h2 className="mb-3 text-base font-semibold">Timeline</h2>
             <ol className="flex flex-col gap-3">

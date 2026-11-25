@@ -17,6 +17,9 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
   const [jobs, setJobs] = useState<FieldJob[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [emailOn, setEmailOn] = useState<boolean | null>(null);
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [emailError, setEmailError] = useState(false);
   const [location, setLocation] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   const [pending, setPending] = useState(pendingCount());
@@ -27,7 +30,10 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
     setRefreshing(true);
     const result = await flush();
     try {
-      const [list, alerts] = await Promise.all([myJobs(), myNotifications().catch(() => null)]);
+      const [list, alerts, preference] = await Promise.all([
+        myJobs(), myNotifications().catch(() => null), supabase.rpc("workflow_email_enabled", { p_audience: "trade" }),
+      ]);
+      if (!preference.error) setEmailOn(preference.data ?? false);
       if (alerts) setNotifications(alerts);
       setJobs(list.map(withPending));
       setError(result.rejected.length ? result.rejected.map((x) => x.reason).join(" ") : null);
@@ -45,6 +51,20 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
     window.addEventListener("online", load);
     return () => window.removeEventListener("online", load);
   }, [load]);
+
+  const toggleEmail = async () => {
+    setSavingEmail(true);
+    setEmailError(false);
+    try {
+      const { data, error: saveError } = await supabase.rpc("set_workflow_email", { p_audience: "trade", p_enabled: !emailOn });
+      if (saveError || data === null) setEmailError(true);
+      else setEmailOn(data);
+    } catch {
+      setEmailError(true);
+    } finally {
+      setSavingEmail(false);
+    }
+  };
 
   const shareLocation = () => {
     setSharing(true);
@@ -101,6 +121,12 @@ export function MyDayScreen({ me, onOpen, onSignOut }: {
         {open.map((j) => <JobCard key={j.id} job={j} next={j.id === nextId} onPress={() => onOpen(j.id)} />)}
         {done.length > 0 && <T variant="xs" weight="semibold" muted style={{ marginTop: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Done</T>}
         {done.map((j) => <JobCard key={j.id} job={j} onPress={() => onOpen(j.id)} />)}
+        {emailOn !== null && <Card>
+          <T weight="semibold">Job email updates</T>
+          <T variant="sm" muted>Email assignment alerts to your sign-in address.</T>
+          <Button label={emailOn ? "Turn off job emails" : "Turn on job emails"} variant="secondary" loading={savingEmail} onPress={toggleEmail} />
+          {emailError && <Banner tone="danger">Could not save your email preference.</Banner>}
+        </Card>}
         <Button label={refreshing ? "Refreshing" : "Refresh"} variant="secondary" loading={refreshing} onPress={load} />
       </ScrollView>
     </View>

@@ -158,3 +158,12 @@ export async function saveTenantProfile(form: FormData) {
   if (error) redirect("/requests?profile=1&error=save");
   redirect("/requests?new=1&saved=1");
 }
+
+export async function saveTenantEmailPreference(form: FormData) {
+  const db = await supabaseServer();
+  const { error } = await db.rpc("set_workflow_email", {
+    p_audience: "tenant",
+    p_enabled: form.get("workflow-email") === "on",
+  });
+  redirect("/requests?email=" + (error ? "error" : "saved"));
+}

@@ -892,6 +892,9 @@ isOneToOne: false
               user_id: string; site_id: string; first_name: string; surname: string; company: string;
             }[] };
             "tenant_sites": { Args: Record<string, never>; Returns: { id: string; label: string }[] };
+            "workflow_email_enabled": { Args: { p_audience: string }; Returns: boolean };
+            "set_workflow_email": { Args: { p_audience: string; p_enabled: boolean }; Returns: boolean };
+            "office_workflow_emails": { Args: { p_job: string }; Returns: { id: string; audience: string; message: string; state: string; attempts: number; updated_at: string; detail: string | null }[] };
             "my_workflow_alerts": { Args: { p_audience: string }; Returns: { event_id: string; job_id: string; number: number; message: string; created_at: string }[] };
             "set_site_dispatch_rule": { Args: { p_site: string; p_trade: string; p_member: string | null }; Returns: undefined };
             "tenant_requests": { Args: Record<string, never>; Returns: { number: number; title: string; status: string; logged_at: string }[] };

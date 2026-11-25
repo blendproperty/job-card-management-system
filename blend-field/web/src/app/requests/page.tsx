@@ -3,20 +3,20 @@ import { redirect } from "next/navigation";
 import { supabaseServer } from "@/server/supabase";
 import { Button, ButtonLink, Card, Field, Input, Select, Textarea } from "@/components/ui";
 import { fmtDayTime } from "@/lib/format";
-import { saveTenantProfile, signOutAction, submitTenantRequest } from "../actions";
+import { saveTenantEmailPreference, saveTenantProfile, signOutAction, submitTenantRequest } from "../actions";
 
 export const metadata = { title: "Tenant portal" };
 
 export default async function RequestsPage({ searchParams }: {
-  searchParams: Promise<{ submitted?: string; error?: string; profile?: string; new?: string; saved?: string }>;
+  searchParams: Promise<{ submitted?: string; error?: string; profile?: string; new?: string; saved?: string; email?: string }>;
 }) {
   const db = await supabaseServer();
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login");
-  const [sites, requests, contact, alerts, state] = await Promise.all([
+  const [sites, requests, contact, alerts, preference, state] = await Promise.all([
     db.rpc("tenant_sites"), db.rpc("tenant_requests"),
     db.from("tenant_profiles").select("first_name,surname,company,phone").eq("user_id", user.id).maybeSingle(),
-    db.rpc("my_workflow_alerts", { p_audience: "tenant" }), searchParams,
+    db.rpc("my_workflow_alerts", { p_audience: "tenant" }), db.rpc("workflow_email_enabled", { p_audience: "tenant" }), searchParams,
   ]);
   if (sites.error || requests.error || contact.error || alerts.error) throw new Error("Could not load the tenant portal.");
   const profile = contact.data;
@@ -99,6 +99,18 @@ export default async function RequestsPage({ searchParams }: {
         </Card>
       ) : !sites.data.length ? <Card>Ask the property team to grant you access to your property.</Card> :
         <Link href="/requests?profile=1" className="text-accent-text underline">Edit my contact details</Link>}
+      {!showProfile && state.new !== "1" && sites.data.length > 0 && !preference.error && <Card>
+        <h2 className="font-semibold">Job email updates</h2>
+        {state.email === "saved" && <p role="status" className="mt-2">Email preference saved.</p>}
+        {state.email === "error" && <p role="alert" className="mt-2 text-danger">Could not save your email preference.</p>}
+        <form action={saveTenantEmailPreference} className="mt-3 space-y-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="workflow-email" defaultChecked={preference.data ?? false} />
+            Email updates to my sign-in address
+          </label>
+          <Button variant="secondary" type="submit">Save email preference</Button>
+        </form>
+      </Card>}
       {alerts.data.length > 0 && <Card>
         <h2 className="font-semibold">Notifications</h2>
         <ul className="divide-y divide-border">{alerts.data.map((alert) => <li key={alert.event_id} className="py-2">

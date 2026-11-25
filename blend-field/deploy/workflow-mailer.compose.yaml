@@ -1,0 +1,16 @@
+services:
+  mailer:
+    build: ./workflow-mailer
+    restart: unless-stopped
+    env_file:
+      - path: .workflow-mailer.env
+        format: raw
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - jobcards
+networks:
+  jobcards:
+    external: true
+    name: jobcards_default
