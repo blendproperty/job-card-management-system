@@ -2,7 +2,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireOffice } from "@/server/auth";
+import { currentActor, requireOffice } from "@/server/auth";
+import { isOfficeRole } from "@/server/roles";
 import { supabaseServer } from "@/server/supabase";
 import { assignJob, createJob, Invalid, NotFound } from "@/server/repo";
 import { localInputToIso } from "@/lib/format";
@@ -34,6 +35,8 @@ export async function verifyCodeAction(_prev: SignInState, form: FormData): Prom
   if (error) {
     return { step: "code", email: email.data, error: error.status === 429 ? "Too many tries. Wait a minute." : "That code didn't work. Check it, or send a new one." };
   }
+  const actor = await currentActor();
+  if (actor && isOfficeRole(actor.role)) redirect("/jobs");
   const { data: sites } = await db.rpc("tenant_sites");
   redirect(sites?.length ? "/requests" : "/jobs");
 }

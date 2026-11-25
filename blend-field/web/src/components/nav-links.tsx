@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Box, Building2, CalendarDays, GitBranch, ClipboardList, Map, Receipt, Settings, UsersRound, Wrench } from "lucide-react";
+import { BarChart3, Box, Building2, CalendarDays, GitBranch, ClipboardList, Map, Receipt, Settings, UserCog, UsersRound, Wrench } from "lucide-react";
 
 const ITEMS = [
   { href: "/role-views", label: "Role views", Icon: UsersRound },
@@ -16,6 +16,8 @@ const ITEMS = [
   { href: "/invoices", label: "Invoices", Icon: Receipt },
   { href: "/reports", label: "Reports", Icon: BarChart3 },
 ];
+
+const ACCESS = { href: "/users", label: "Users and access", Icon: UserCog };
 
 function Item({ href, label, Icon }: (typeof ITEMS)[number]) {
   const path = usePathname();
@@ -35,21 +37,21 @@ function Item({ href, label, Icon }: (typeof ITEMS)[number]) {
   );
 }
 
-export function MobileNavLinks() {
+export function MobileNavLinks({ isAdmin }: { isAdmin: boolean }) {
   const path = usePathname();
   return <nav aria-label="Office sections" className="flex gap-1 overflow-x-auto border-b border-border bg-bg px-3 py-2 md:hidden">
-    {[...ITEMS, { href: "/settings", label: "Settings" }].map(({ href, label }) => (
+    {[...ITEMS, ...(isAdmin ? [ACCESS] : []), { href: "/settings", label: "Settings" }].map(({ href, label }) => (
       <Link key={href} href={href} aria-current={(path === href || path.startsWith(href + "/")) ? "page" : undefined}
         className="whitespace-nowrap rounded-md px-2.5 py-2 text-sm text-accent-text aria-[current=page]:bg-accent-soft aria-[current=page]:font-bold">{label}</Link>
     ))}
   </nav>;
 }
 
-export function NavLinks() {
+export function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   return (
     <>
       <div className="flex flex-col gap-0.5">{ITEMS.map((i) => <Item key={i.href} {...i} />)}</div>
-      <div className="mt-auto"><Item href="/settings" label="Settings" Icon={Settings} /></div>
+      <div className="mt-auto">{isAdmin && <Item {...ACCESS} />}<Item href="/settings" label="Settings" Icon={Settings} /></div>
     </>
   );
 }

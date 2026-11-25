@@ -1,5 +1,6 @@
 import "server-only";
 import type { PostgrestError } from "@supabase/supabase-js";
+import { isOfficeRole } from "./roles";
 import type { Actor } from "./auth";
 import type { Job, JobDetail, JobView, Member, Site, Stage } from "./types";
 
@@ -13,7 +14,7 @@ export class Forbidden extends Error {}
 export class NotFound extends Error {}
 export class Invalid extends Error {}
 
-const isOffice = (m: Member) => m.role === "admin" || m.role === "office" || m.role === "facility_manager";
+const isOffice = (m: Member) => isOfficeRole(m.role);
 
 function fail(e: PostgrestError): never {
   if (e.code === "P0001") throw new Invalid(e.message);

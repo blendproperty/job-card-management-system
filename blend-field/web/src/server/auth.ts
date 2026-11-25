@@ -1,6 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { supabaseServer, type Db } from "./supabase";
+import { isOfficeRole } from "./roles";
 import type { Member } from "./types";
 
 /** The signed-in team member plus a client that acts as them (all queries run under RLS). */
@@ -17,6 +18,12 @@ export async function currentActor(): Promise<Actor | null> {
 export async function requireOffice(): Promise<Actor> {
   const a = await currentActor();
   if (!a) redirect("/login");
-  if (a.role !== "office" && a.role !== "admin" && a.role !== "facility_manager") redirect("/login?reason=field");
+  if (!isOfficeRole(a.role)) redirect("/login?reason=field");
   return a;
+}
+
+export async function requireAdmin(): Promise<Actor> {
+  const actor = await requireOffice();
+  if (actor.role !== "admin") redirect("/jobs");
+  return actor;
 }

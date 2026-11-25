@@ -51,11 +51,22 @@ def job_summary(delivery):
 
 def build_message(delivery):
     address = os.environ["SMTP_FROM"]
-    tenant = delivery["audience"] == "tenant"
+    invitation = delivery.get("kind") == "invite"
+    tenant = invitation or delivery["audience"] == "tenant"
     link = os.environ["TENANT_PORTAL_URL"] if tenant else os.environ["CONTRACTOR_PORTAL_URL"]
     button = "Open tenant portal" if tenant else "Open contractor portal"
-    fields = job_summary(delivery)
-    summary = delivery["message"]
+    if invitation:
+        heading = "Your tenant portal is ready"
+        subject = "Your Blend Job Cards tenant portal"
+        summary = "Open the portal and request a one-time code with the email address below."
+        footer = "Sign in to view your maintenance jobs."
+        fields = [("Property / unit", delivery["property"]), ("Sign-in email", delivery["email"]), ("Access", "View your maintenance jobs")]
+    else:
+        heading = "Job update"
+        subject = f"Blend Job Cards #{delivery['number']}"
+        summary = delivery["message"]
+        footer = "Sign in to view the full job."
+        fields = job_summary(delivery)
     plain_details = "\n".join(f"{label}: {value or '—'}" for label, value in fields)
     rows = "".join(
         f'<tr><th scope="row" align="left" valign="top" width="33%" style="border-bottom:1px solid #e4e7eb;'
@@ -67,7 +78,7 @@ def build_message(delivery):
     message = EmailMessage()
     message["From"] = formataddr(("Blend Job Cards", address))
     message["To"] = delivery["email"]
-    message["Subject"] = f"Blend Job Cards #{delivery['number']}"
+    message["Subject"] = subject
     message["Message-ID"] = f"<workflow-{UUID(delivery['id'])}@{address.rsplit('@', 1)[1]}>"
     message.set_content(f"{summary}\n\n{plain_details}\n\n{button}: {link}\n")
     message.add_alternative(f"""<!doctype html>
@@ -81,9 +92,9 @@ def build_message(delivery):
        style="max-width:600px;border:1px solid #dfe5e7;">
 <tr><td bgcolor="#122d35" style="padding:18px 24px;color:#ffffff;font-size:18px;font-weight:bold;">Blend Job Cards</td></tr>
 <tr><td style="padding:24px;">
-<h1 style="margin:0 0 8px;font-size:24px;line-height:1.3;color:#122d35;">Job update</h1>
+<h1 style="margin:0 0 8px;font-size:24px;line-height:1.3;color:#122d35;">{heading}</h1>
 <p style="margin:0 0 20px;font-size:16px;line-height:1.5;">{escape(summary)}</p>
-<table aria-label="Job details" cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #e4e7eb;">
+<table aria-label="{'Portal access' if invitation else 'Job details'}" cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #e4e7eb;">
 {rows}
 </table>
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;">
@@ -91,7 +102,7 @@ def build_message(delivery):
 <a href="{escape(link, quote=True)}" style="display:inline-block;padding:12px 18px;color:#ffffff;
 text-decoration:none;font-size:15px;font-weight:bold;">{button}</a>
 </td></tr></table>
-<p style="margin:16px 0 0;color:#43515d;font-size:13px;line-height:1.5;">Sign in to view the full job.</p>
+<p style="margin:16px 0 0;color:#43515d;font-size:13px;line-height:1.5;">{footer}</p>
 </td></tr></table>
 <!--[if mso]></td></tr></table><![endif]-->
 </td></tr></table>
@@ -125,21 +136,29 @@ def send(delivery):
 
 def process_one():
     row = query("select row_to_json(delivery) from public.claim_workflow_email_summary() delivery")
+    invitation = not row
+    if invitation:
+        row = query("select row_to_json(delivery) from public.claim_workspace_tenant_invite() delivery")
     if not row:
         return False
     delivery = json.loads(row)
     if delivery["email"]:
+        if invitation:
+            delivery["kind"] = "invite"
         outcome, detail = send(delivery)
         delivery_id = UUID(delivery["id"])
         attempt = int(delivery["attempt"])
-        query(f"select public.finish_workflow_email('{delivery_id}', {attempt}, '{outcome}', '{detail}')")
+        if invitation:
+            query(f"select public.finish_workspace_tenant_invite('{delivery_id}', {attempt}, '{outcome}')")
+        else:
+            query(f"select public.finish_workflow_email('{delivery_id}', {attempt}, '{outcome}', '{detail}')")
         print(f"Workflow email {delivery_id} {outcome}")
     return True
 
 
 if __name__ == "__main__":
     if sys.argv[1:] == ["--check"]:
-        if query("select has_function_privilege('public.claim_workflow_email_summary()', 'EXECUTE')") != "t":
+        if query("select has_function_privilege('public.claim_workflow_email_summary()', 'EXECUTE') and has_function_privilege('public.claim_workspace_tenant_invite()', 'EXECUTE')") != "t":
             raise SystemExit("Workflow summary permission check failed")
         with open_smtp() as smtp:
             smtp.login(os.environ["SMTP_USER"], os.environ["SMTP_PASSWORD"])

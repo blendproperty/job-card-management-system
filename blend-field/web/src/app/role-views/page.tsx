@@ -5,7 +5,7 @@ import { ButtonLink, Card } from "@/components/ui";
 const roles = {
   tenant: { label: "Tenant", title: "My maintenance", subtitle: "Log and track requests for your property.", open: "/requests", cta: "Open tenant portal" },
   trade: { label: "Contractor", title: "My field jobs", subtitle: "See your allocated work and capture updates on site.", open: "https://jobcards-field.srv938083.hstgr.cloud/", cta: "Open contractor portal" },
-  manager: { label: "PM / FM", title: "Job management", subtitle: "Review tenant requests, allocate work and approve closure.", open: "/jobs", cta: "Open manager workspace" },
+  manager: { label: "PM / AM / FM", title: "Job management", subtitle: "Review tenant requests, allocate work and approve closure.", open: "/jobs", cta: "Open manager workspace" },
 } as const;
 
 export const metadata = { title: "Role views" };

@@ -891,6 +891,12 @@ isOneToOne: false
             "office_tenant_contacts": { Args: { p_org: string }; Returns: {
               user_id: string; site_id: string; first_name: string; surname: string; company: string;
             }[] };
+            "requestable_tenant_sites": { Args: Record<string, never>; Returns: { id: string; label: string }[] };
+            "save_workspace_manager": { Args: { p_org: string; p_email: string; p_name: string; p_role: string }; Returns: undefined };
+            "set_workspace_manager_active": { Args: { p_org: string; p_member: string; p_active: boolean }; Returns: undefined };
+            "set_workspace_tenant": { Args: { p_org: string; p_contact: string; p_mode: string }; Returns: undefined };
+             "queue_workspace_tenant_invite": { Args: { p_org: string; p_contact: string }; Returns: undefined };
+           "workspace_access_list": { Args: { p_org: string }; Returns: { id: string; role: string; name: string; email: string; site: string | null; access: string; invitation: string | null }[] };
             "tenant_sites": { Args: Record<string, never>; Returns: { id: string; label: string }[] };
             "workflow_email_enabled": { Args: { p_audience: string }; Returns: boolean };
             "set_workflow_email": { Args: { p_audience: string; p_enabled: boolean }; Returns: boolean };
@@ -990,7 +996,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "alert_kind": "overrun"|"no_checkin"|"late_start"|"sync_stale","approval_state": "not_required"|"awaiting"|"approved"|"rejected","attachment_kind": "photo"|"signature"|"document","attachment_stage": "before"|"during"|"after"|"other","channel": "whatsapp"|"sms"|"email","contact_role": "owner"|"tenant"|"agent"|"other","invoice_state": "draft"|"issued"|"paid"|"void","job_source": "manual"|"ppm"|"mobile"|"tenant_request","job_stage": "unassigned"|"assigned"|"en_route"|"arrived"|"in_progress"|"pending"|"completed"|"cancelled","member_role": "admin"|"office"|"engineer"|"contractor"|"facility_manager","notify_state": "queued"|"sent"|"delivered"|"read"|"failed","quote_state": "draft"|"sent"|"approved"|"rejected"|"expired"
+            "alert_kind": "overrun"|"no_checkin"|"late_start"|"sync_stale","approval_state": "not_required"|"awaiting"|"approved"|"rejected","attachment_kind": "photo"|"signature"|"document","attachment_stage": "before"|"during"|"after"|"other","channel": "whatsapp"|"sms"|"email","contact_role": "owner"|"tenant"|"agent"|"other","invoice_state": "draft"|"issued"|"paid"|"void","job_source": "manual"|"ppm"|"mobile"|"tenant_request","job_stage": "unassigned"|"assigned"|"en_route"|"arrived"|"in_progress"|"pending"|"completed"|"cancelled","member_role": "admin"|"office"|"engineer"|"contractor"|"facility_manager"|"property_manager"|"asset_manager","notify_state": "queued"|"sent"|"delivered"|"read"|"failed","quote_state": "draft"|"sent"|"approved"|"rejected"|"expired"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -1110,7 +1116,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "alert_kind": ["overrun", "no_checkin", "late_start", "sync_stale"],"approval_state": ["not_required", "awaiting", "approved", "rejected"],"attachment_kind": ["photo", "signature", "document"],"attachment_stage": ["before", "during", "after", "other"],"channel": ["whatsapp", "sms", "email"],"contact_role": ["owner", "tenant", "agent", "other"],"invoice_state": ["draft", "issued", "paid", "void"],"job_source": ["manual", "ppm", "mobile", "tenant_request"],"job_stage": ["unassigned", "assigned", "en_route", "arrived", "in_progress", "pending", "completed", "cancelled"],"member_role": ["admin", "office", "engineer", "contractor", "facility_manager"],"notify_state": ["queued", "sent", "delivered", "read", "failed"],"quote_state": ["draft", "sent", "approved", "rejected", "expired"]
+            "alert_kind": ["overrun", "no_checkin", "late_start", "sync_stale"],"approval_state": ["not_required", "awaiting", "approved", "rejected"],"attachment_kind": ["photo", "signature", "document"],"attachment_stage": ["before", "during", "after", "other"],"channel": ["whatsapp", "sms", "email"],"contact_role": ["owner", "tenant", "agent", "other"],"invoice_state": ["draft", "issued", "paid", "void"],"job_source": ["manual", "ppm", "mobile", "tenant_request"],"job_stage": ["unassigned", "assigned", "en_route", "arrived", "in_progress", "pending", "completed", "cancelled"],"member_role": ["admin", "office", "engineer", "contractor", "facility_manager", "property_manager", "asset_manager"],"notify_state": ["queued", "sent", "delivered", "read", "failed"],"quote_state": ["draft", "sent", "approved", "rejected", "expired"]
           }
         }
 } as const

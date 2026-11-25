@@ -1,6 +1,7 @@
 import { LogOut, Plus, Search } from "lucide-react";
 import { MobileNavLinks, NavLinks } from "@/components/nav-links";
 import { ButtonLink, initials } from "@/components/ui";
+import { roleLabels } from "@/server/roles";
 import { requireOffice } from "@/server/auth";
 import { signOutAction } from "../actions";
 
@@ -15,13 +16,13 @@ export default async function OfficeLayout({ children }: { children: React.React
       <nav aria-label="Main" className="hidden flex-col gap-0.5 bg-nav-bg px-3 py-4 md:sticky md:top-0 md:flex md:h-dvh">
         <div className="mb-5 flex items-center px-2.5 pt-1 text-base font-bold text-on-nav">
           <span aria-hidden className="mr-2 size-2.5 rounded-[3px] bg-accent" />
-          PM / FM workspace
+          Property operations
         </div>
-        <NavLinks />
+        <NavLinks isAdmin={me.role === "admin"} />
       </nav>
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-10 flex h-header items-center gap-3 border-b border-border bg-bg px-4">
-          <span className="font-bold md:hidden">PM / FM</span>
+          <span className="font-bold md:hidden">Operations</span>
           <form action="/jobs" role="search" className="relative max-w-[420px] flex-1">
             <Search aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-subtle" />
             <label htmlFor="q" className="sr-only">Search jobs</label>
@@ -30,7 +31,7 @@ export default async function OfficeLayout({ children }: { children: React.React
           </form>
           <div className="ml-auto flex items-center gap-2">
             <ButtonLink href="/jobs/new"><Plus aria-hidden />New job</ButtonLink>
-            <span title={me.display_name} aria-label={`Signed in as ${me.display_name}`}
+            <span title={`${me.display_name} · ${roleLabels[me.role]}`} aria-label={`Signed in as ${me.display_name}, ${roleLabels[me.role]}`}
               className="grid size-8 place-items-center rounded-full bg-surface-2 text-xs font-bold">{initials(me.display_name)}</span>
             <form action={signOutAction}>
               <button className="grid size-10 place-items-center rounded-md text-text-muted hover:bg-surface" aria-label="Sign out">
@@ -39,7 +40,7 @@ export default async function OfficeLayout({ children }: { children: React.React
             </form>
           </div>
         </header>
-        <MobileNavLinks />
+        <MobileNavLinks isAdmin={me.role === "admin"} />
         <main id="main" className="mx-auto w-full max-w-content flex-1 px-4 py-5 md:px-6">{children}</main>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/server/supabase";
+import { isOfficeRole } from "@/server/roles";
 import { currentActor } from "@/server/auth";
 import { SignInForm } from "./sign-in-form";
 
@@ -13,7 +14,7 @@ const REASON: Record<string, string> = {
 /** S01 Sign in: emailed one-time code. */
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
   const me = await currentActor();
-  if (me && (me.role === "office" || me.role === "admin" || me.role === "facility_manager")) redirect("/jobs");
+  if (me && isOfficeRole(me.role)) redirect("/jobs");
   if (!me) {
     const db = await supabaseServer();
     const { data: { user } } = await db.auth.getUser();

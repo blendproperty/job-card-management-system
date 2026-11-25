@@ -9,6 +9,7 @@ services:
     environment:
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?Set Supabase URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?Set Supabase anon key}
+      SUPABASE_AUTH_ADMIN_KEY: ${SUPABASE_AUTH_ADMIN_KEY:-}
     networks:
       - proxy
     labels:

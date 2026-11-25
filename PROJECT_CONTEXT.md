@@ -170,3 +170,13 @@ Implementation: Added a branded HTML job notification with a job-details table, 
 Testing: Local transactional Postgres checks verified the job summary, appointment formatting, worker-only execution and redaction when a delivery is skipped. Mime rendering checks verified both alternatives, safe escaping of job text, role-specific links and unscheduled jobs.
 
 Commit and push: implementation follows on codex/blend-field-foundation-20261125. Merge: none. Deployment and live production verification: pending. The established Hostinger sender remains in place. Other recipient, provider, staff and recovery gates remain open.
+
+## 2026-11-25 — Formatted email deployed and Users and Access implementation
+
+Formatted email: Worker revision 61dd1db was pushed to the Job Cards development branch and deployed on the VPS after migration 000010 and a pre-change Postgres backup. Local MIME and responsive layout checks passed at 320 and 640 pixels. A live formatted test for showcase job #1006 went to the workspace owner only and Hostinger accepted it on the first attempt. No matching Outlook result was observed at this checkpoint. The temporary test preference, portal grant and contact profile were restored to their previous state.
+
+Users and Access implementation: Administrators can provision Facilities Manager, Asset Manager and Property Manager accounts, change their roles and disable access. These roles can create and allocate jobs within their organisation. Facilities Managers and administrators retain final closure permissions. Registered tenants are held by default. An administrator can grant property-scoped view-only access and choose separately when to email a login invitation. View-only users cannot submit jobs or opt in to job alert email. Tenant job creation is an explicit per-property grant and existing grants retain their capability. The office app's Auth admin credential is server-only and is provisioned from the dedicated Job Cards runtime configuration.
+
+Testing: Local transactional checks covered three manager roles, administrator-only access management, view-only enforcement, visibility of a manager-created job, tenant access revocation, explicit invitation queueing, duplicate prevention and worker status. Both mail templates rendered in local tests.
+
+Commit and push: Users and Access implementation follows on codex/blend-field-foundation-20261125. Merge: none. Office and invitation worker deployment and live verification of these access changes are pending this checkpoint. No tenant invitations were sent. External receipt of #1006, actual team and tenant onboarding, WhatChimp, handset UAT and backup restoration remain open.

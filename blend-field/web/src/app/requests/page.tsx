@@ -13,14 +13,15 @@ export default async function RequestsPage({ searchParams }: {
   const db = await supabaseServer();
   const { data: { user } } = await db.auth.getUser();
   if (!user) redirect("/login");
-  const [sites, requests, contact, alerts, preference, state] = await Promise.all([
-    db.rpc("tenant_sites"), db.rpc("tenant_requests"),
+  const [sites, requestSites, requests, contact, alerts, preference, state] = await Promise.all([
+    db.rpc("tenant_sites"), db.rpc("requestable_tenant_sites"), db.rpc("tenant_requests"),
     db.from("tenant_profiles").select("first_name,surname,company,phone").eq("user_id", user.id).maybeSingle(),
     db.rpc("my_workflow_alerts", { p_audience: "tenant" }), db.rpc("workflow_email_enabled", { p_audience: "tenant" }), searchParams,
   ]);
-  if (sites.error || requests.error || contact.error || alerts.error) throw new Error("Could not load the tenant portal.");
+  if (sites.error || requestSites.error || requests.error || contact.error || alerts.error) throw new Error("Could not load the tenant portal.");
   const profile = contact.data;
-  const showProfile = sites.data.length > 0 && (!profile || state.profile === "1");
+  const canRequest = requestSites.data.length > 0;
+  const showProfile = canRequest && (!profile || state.profile === "1");
   const entries = requests.data;
   const closed = entries.filter((request) => ["Closed", "Declined", "Cancelled"].includes(request.status));
   return (
@@ -32,7 +33,7 @@ export default async function RequestsPage({ searchParams }: {
           {profile && <p className="text-text-muted">{profile.first_name} {profile.surname} · {profile.company}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {sites.data.length > 0 && <ButtonLink href="/requests?new=1">New request</ButtonLink>}
+          {canRequest && <ButtonLink href="/requests?new=1">New request</ButtonLink>}
           <form action={signOutAction}><Button type="submit" variant="secondary">Sign out</Button></form>
         </div>
       </header>
@@ -66,7 +67,7 @@ export default async function RequestsPage({ searchParams }: {
             <Button type="submit" className="self-end">Save contact details</Button>
           </form>
         </Card>
-      ) : profile && state.new === "1" && sites.data.length > 0 ? (
+      ) : profile && state.new === "1" && canRequest ? (
         <Card>
           <h2 className="mb-3 font-semibold">New maintenance request</h2>
           <div className="mb-4 rounded-md bg-surface p-3">
@@ -76,9 +77,9 @@ export default async function RequestsPage({ searchParams }: {
           </div>
           <form action={submitTenantRequest} className="flex flex-col gap-4">
             <Field label="Property or unit" htmlFor="site" required>
-              <Select id="site" name="site" required defaultValue={sites.data.length === 1 ? sites.data[0].id : ""}>
+              <Select id="site" name="site" required defaultValue={requestSites.data.length === 1 ? requestSites.data[0].id : ""}>
                 <option value="" disabled>Choose a property</option>
-                {sites.data.map((site) => <option key={site.id} value={site.id}>{site.label}</option>)}
+                {requestSites.data.map((site) => <option key={site.id} value={site.id}>{site.label}</option>)}
               </Select>
             </Field>
             <Field label="Trade" htmlFor="trade" required>
@@ -98,8 +99,8 @@ export default async function RequestsPage({ searchParams }: {
           </form>
         </Card>
       ) : !sites.data.length ? <Card>Ask the property team to grant you access to your property.</Card> :
-        <Link href="/requests?profile=1" className="text-accent-text underline">Edit my contact details</Link>}
-      {!showProfile && state.new !== "1" && sites.data.length > 0 && !preference.error && <Card>
+        canRequest ? <Link href="/requests?profile=1" className="text-accent-text underline">Edit my contact details</Link> : <p className="text-sm text-text-muted">View-only access. Contact your property team for new maintenance work.</p>}
+      {!showProfile && state.new !== "1" && canRequest && !preference.error && <Card>
         <h2 className="font-semibold">Job email updates</h2>
         {state.email === "saved" && <p role="status" className="mt-2">Email preference saved.</p>}
         {state.email === "error" && <p role="alert" className="mt-2 text-danger">Could not save your email preference.</p>}
