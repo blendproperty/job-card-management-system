@@ -22,3 +22,11 @@ Commit and push: container and dependency changes committed as 3625771 and pushe
 
 Outstanding: isolate and configure Supabase/Postgres, TLS routing, secrets, SMTP and OTP templates; apply migrations and create approved accounts; implement and test tenant intake, approvals, allocation/reassignment, overtime, timestamped evidence, signatures, FM closure, durable offline sync and notifications; verify access boundaries, backups/restores, real devices and staff UAT. WhatChimp sender verification and delivery remain open. Do not treat this foundation as a complete hosted pilot.
 
+
+## 2026-11-25 — Isolated VPS backend started
+
+Implementation: No additional application workflow implemented in this checkpoint. Three existing Blend Field SQL migrations were applied successfully, each in a separate transaction, to a new empty self-hosted Supabase/Postgres database.
+
+Testing: `docker compose config --quiet` passed; Postgres, Auth, REST, Storage, Studio, gateway and pooler reported healthy on inspection. Migration commands exited successfully. Application authorization, data, backup/restore, SMTP, user sign-in and real workflow were not tested.
+
+Commit and push: context checkpoint follows on codex/blend-field-foundation-20261125. Merge: none. Deployment and configuration: official Supabase Docker checkout b2cd26e0546f801946226a1096b49d4a04ab586c configured at /opt/job-cards-supabase/docker as isolated Compose project jobcards, with fresh generated secrets and disabled signup. Gateway and pooler published to loopback only; no public Traefik route or office app deployed. Public URLs are placeholders pending TLS routing. The server reported 8.8 GiB available memory and 80 GiB free disk after startup. Existing SMTP credentials were identified but not copied or configured. Live production verification: none. Sender verification, messaging, access, features, UAT, data, recovery, training and approval gates remain open.
