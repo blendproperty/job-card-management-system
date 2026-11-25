@@ -50,3 +50,13 @@ Testing: TypeScript and ESLint passed. Local Postgres applied both migrations in
 Commit and push: implementation checkpoint follows on codex/blend-field-foundation-20261125. Merge: none. Deployment and configuration: pending. Live production verification: pending.
 
 The current delivery scope still includes dedicated FM role/access, overtime and contractor sign-off, field app rollout, durable offline operation, handset testing, and WhatChimp on Job Card Mobile +27 60 017 8025. Real tenant and worker profiles, trade assignments, staff acceptance and recovery verification remain open. No later milestone is a prerequisite to working on these items.
+
+## 2026-11-25 — Office workflow and field web app deployed
+
+Implementation: Office and tenant workflows described above are deployed. The existing Expo field app is packaged as a browser app with a dedicated Traefik route and the Job Cards Supabase endpoint.
+
+Testing: The VPS built the Next.js production image and Expo browser bundle. The local transactional workflow check also confirmed missing evidence blocks final closure, one closure event survives a repeated request, and the tenant can see closure. The Expo dependency audit still reports three moderate findings, including a transitive minimatch advisory in Expo tooling.
+
+Commit and push: Office workflow b46a44b and field deployment cb33154 pushed to codex/blend-field-foundation-20261125. Merge: none. Deployment and configuration: both SQL migrations applied in one transaction to the dedicated Job Cards Postgres. Office runtime b46a44b and field runtime cb33154 deployed in separate Docker services. No live users or worker trade mappings were added and no messaging settings changed.
+
+Live production verification: Office login returned HTTPS 200, unauthenticated requests redirected to login, and both workflow functions were present in live Postgres. Field HTML and JavaScript returned HTTPS 200 after certificate issuance. The field bundle points to the dedicated Job Cards API, and the live API allowed the field origin for auth requests. Real tenant and engineer sign-in, private media upload and full workflow UAT remain unverified. The administrator role is the current closure authority. Dedicated FM access, contractor sign-off, overtime, durable offline use, native device rollout, WhatsApp setup, approved data, backup/restore and staff acceptance remain open.
