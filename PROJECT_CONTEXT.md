@@ -140,3 +140,13 @@ Implementation: Tenant and contractor portals let users opt in to job email at t
 Testing: Local PostgreSQL checked opt-in, double-recipient queueing, cross-organisation isolation, privileged claim/finish access, retry timing, uncertain outcomes and skipped delivery after opt-out. Python test transport verified safe email content and SMTP acceptance, retry, failure and interruption handling.
 
 Commit and push: implementation follows on codex/blend-field-foundation-20261125. Merge: none. Deployment, provider and live verification: pending. WhatChimp and proof of external inbox delivery remain open.
+
+## 2026-11-25 — Hostinger job email live on the VPS
+
+Implementation: Opt-in tenant and contractor email notifications and manager job-level status are live. New emails use the approved Hostinger mailbox no-reply@onpointoffices.co.za. In-app alerts remain available independently. The mail worker checks the recipient's active job access and opt-in and uses bounded retries and a distinct uncertain state.
+
+Testing: Office and contractor TypeScript and lint, unit transport checks, local Postgres rollback tests and all three VPS container builds passed. Authenticated live browser testing confirmed both portals save opt-in and opt-out, and the manager page showed the live test's SMTP acceptance in one attempt. The dedicated worker authenticated to Postgres and Hostinger SMTP over TLS. Test-only access, preferences, contact details and sessions were cleaned up. No tenant or contractor outside the test received an email.
+
+Commit and push: Application and worker revision 9fba99c pushed to codex/blend-field-foundation-20261125 and deployed. This evidence checkpoint follows on the same branch. Merge: none.
+Deployment and configuration: Postgres migration 000009 applied transactionally after a nonempty database dump. Deployed updated Next.js and Expo web containers and a private Docker mail worker using a dedicated restricted database login. Hostinger's existing Job Cards sender was reused. No mailbox credentials, DNS records, STOR24 resources or WhatChimp settings were changed.
+Live production verification: Job #1005 generated one test email to the workspace owner's existing address. Hostinger SMTP accepted it at 13:06:40 SAST on attempt one. No matching Outlook result or sender bounce was observed during verification. hPanel confirmed the sender mailbox and separately showed a prior test-alias message queued by the receiving gateway, which is not proof of inbox receipt. Recipient inbox delivery of #1005, demo alias inbox delivery, WhatChimp on +27 60 017 8025, approved operational recipients and rules, real-user and device acceptance, and backup restoration remain open.
